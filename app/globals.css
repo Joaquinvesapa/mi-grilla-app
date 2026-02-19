@@ -58,6 +58,9 @@
   --color-grid-cell-foreground: #000000; /* Texto dentro del bloque */
   --color-grid-header: #ffffff; /* Fondo del header de escenario */
   --color-grid-header-foreground: #000000; /* Texto del header de escenario */
+  --color-grid-bg: #1a1a2e; /* Fondo del area de la grilla */
+  --color-grid-line: rgba(255, 255, 255, 0.10); /* Líneas de la grilla */
+  --color-grid-time: rgba(255, 255, 255, 0.70); /* Texto de horarios */
 
   /* ============================================================
    * NAV / SURFACE
@@ -95,6 +98,9 @@
   --color-grid-cell-foreground: #f0ece8;
   --color-grid-header: #141414;
   --color-grid-header-foreground: #f0ece8;
+  --color-grid-bg: #0d0d1a;
+  --color-grid-line: rgba(255, 255, 255, 0.10);
+  --color-grid-time: rgba(255, 255, 255, 0.65);
 }
 
 body {
@@ -105,4 +111,10 @@ body {
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }
