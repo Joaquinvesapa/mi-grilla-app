@@ -1,4 +1,39 @@
-import { signInWithGoogle } from "./actions";
+"use client";
+
+import { useActionState, useState, useTransition } from "react";
+import {
+  checkUsername,
+  authenticate,
+  signInWithGoogle,
+  type AuthState,
+} from "./actions";
+import { PinInput } from "@/components/pin-input";
+
+// ── Shared styles ──────────────────────────────────────────
+
+const inputBase =
+  "w-full rounded-2xl border border-border bg-surface px-4 py-3.5 text-base text-surface-foreground placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 touch-manipulation";
+
+const inputWithPrefix =
+  "w-full rounded-2xl border border-border bg-surface pl-9 pr-4 py-3.5 text-base text-surface-foreground placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 touch-manipulation";
+
+const buttonPrimary =
+  "w-full cursor-pointer rounded-2xl bg-primary py-3.5 text-sm font-semibold uppercase tracking-wide text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation transition-[opacity,transform] duration-150";
+
+const errorText = "text-xs text-accent-pink pl-1 pt-1";
+
+// ── Client-side validation ─────────────────────────────────
+
+function validateUsernameClient(raw: string): string | null {
+  if (!raw) return "Ingresá un nombre de usuario";
+  if (raw.length < 3) return "Mínimo 3 caracteres";
+  if (raw.length > 20) return "Máximo 20 caracteres";
+  if (!/^[a-z0-9_]+$/.test(raw))
+    return "Solo letras minúsculas, números y guiones bajos";
+  return null;
+}
+
+// ── Icons ──────────────────────────────────────────────────
 
 function GoogleIcon() {
   return (
@@ -29,24 +64,214 @@ function GoogleIcon() {
   );
 }
 
-export default function LoginPage() {
+// ── Step 1: Username ───────────────────────────────────────
+
+function UsernameStep({
+  initialUsername,
+  onResolved,
+}: {
+  initialUsername: string;
+  onResolved: (username: string, isNewUser: boolean) => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit(formData: FormData) {
+    setError(null);
+    const raw = ((formData.get("username") as string) ?? "")
+      .toLowerCase()
+      .trim();
+
+    const validationError = validateUsernameClient(raw);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    startTransition(async () => {
+      const available = await checkUsername(raw);
+      onResolved(raw, available);
+    });
+  }
+
   return (
-    <main className="flex min-h-screen font-sans flex-col items-center justify-center gap-8 px-6">
+    <form action={handleSubmit} className="flex w-full flex-col gap-3">
+      <div>
+        <div className="relative">
+          <span
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 select-none text-muted"
+            aria-hidden="true"
+          >
+            @
+          </span>
+          <input
+            aria-label="Nombre de usuario"
+            name="username"
+            type="text"
+            defaultValue={initialUsername}
+            placeholder="tu_usuario\u2026"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            className={inputWithPrefix}
+          />
+        </div>
+        {error && <p className={errorText}>{error}</p>}
+      </div>
+
+      <button type="submit" disabled={isPending} className={buttonPrimary}>
+        {isPending ? "Verificando\u2026" : "Continuar"}
+      </button>
+    </form>
+  );
+}
+
+// ── Step 2: PIN ────────────────────────────────────────────
+
+function PinStep({
+  username,
+  isNewUser,
+  onBack,
+}: {
+  username: string;
+  isNewUser: boolean;
+  onBack: () => void;
+}) {
+  const [state, action, isPending] = useActionState(authenticate, null);
+
+  return (
+    <>
+      <form action={action} className="flex w-full flex-col gap-3">
+        <input type="hidden" name="username" value={username} />
+        <input type="hidden" name="isNewUser" value={String(isNewUser)} />
+
+        {/* Username badge */}
+        <div className="flex flex-col items-center gap-1 text-center">
+          <p className="font-display text-2xl uppercase tracking-tight text-foreground">
+            @{username}
+          </p>
+          <p className="text-sm text-muted">
+            {isNewUser
+              ? "Elegí un PIN para tu nueva cuenta"
+              : "Ingresá tu PIN"}
+          </p>
+        </div>
+
+        {/* PIN */}
+        <div className="flex flex-col items-center gap-2">
+          <PinInput
+            name="pin"
+            autoFocus
+            hasError={!!state?.fieldErrors?.pin || !!state?.error}
+          />
+          {state?.fieldErrors?.pin && (
+            <p className={errorText}>{state.fieldErrors.pin}</p>
+          )}
+        </div>
+
+        {/* General error */}
+        {state?.error && (
+          <p className="text-center text-sm text-accent-pink" role="alert">
+            {state.error}
+          </p>
+        )}
+
+        {/* Submit */}
+        <button type="submit" disabled={isPending} className={buttonPrimary}>
+          {isPending
+            ? isNewUser
+              ? "Creando cuenta\u2026"
+              : "Entrando\u2026"
+            : isNewUser
+              ? "Crear cuenta"
+              : "Entrar"}
+        </button>
+      </form>
+
+      {/* Back */}
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-xs text-muted transition-colors duration-150 hover:text-foreground touch-manipulation"
+      >
+        ← Cambiar usuario
+      </button>
+    </>
+  );
+}
+
+// ── Page ───────────────────────────────────────────────────
+
+export default function LoginPage() {
+  const [step, setStep] = useState<"username" | "pin">("username");
+  const [animKey, setAnimKey] = useState(0);
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
+  const [username, setUsername] = useState("");
+  const [isNewUser, setIsNewUser] = useState(false);
+
+  function handleUsernameResolved(name: string, available: boolean) {
+    setUsername(name);
+    setIsNewUser(available);
+    setDirection("forward");
+    setAnimKey((k) => k + 1);
+    setStep("pin");
+  }
+
+  function handleBack() {
+    setDirection("back");
+    setAnimKey((k) => k + 1);
+    setStep("username");
+  }
+
+  const animClass = direction === "forward" ? "animate-slide-in-right" : "animate-slide-in-left";
+
+  return (
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6 font-sans">
+      {/* Brand */}
       <div className="flex flex-col items-center gap-3 text-center">
-        <span className="text-6xl">🎸</span>
-        <h1 className="text-4xl font-display tracking-tight">
-          Mi<span style={{ color: "var(--color-primary)" }}>Grilla</span>
+        <span className="text-6xl" role="img" aria-label="Guitarra">
+          🎸
+        </span>
+        <h1 className="text-4xl font-display tracking-tight text-pretty">
+          Mi<span className="text-primary">Grilla</span>
         </h1>
-        <p className="text-base text-foreground/60 max-w-xs">
+        <p className="max-w-xs text-base text-foreground/60 text-pretty">
           Armá tu agenda del festival y coordiná con tus amigos.
         </p>
       </div>
 
-      <div className="flex flex-col gap-4 w-full max-w-xs">
-        <form action={signInWithGoogle}>
+      {/* Auth section */}
+      <div className="flex w-full max-w-xs flex-col items-center gap-4">
+        <div className="w-full overflow-hidden">
+          <div key={animKey} className={animClass}>
+            {step === "username" ? (
+              <UsernameStep
+                initialUsername={username}
+                onResolved={handleUsernameResolved}
+              />
+            ) : (
+              <PinStep
+                username={username}
+                isNewUser={isNewUser}
+                onBack={handleBack}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="flex w-full items-center gap-4" role="separator">
+          <div className="h-px flex-1 bg-border" />
+          <span className="select-none text-xs text-muted">o</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        {/* Google OAuth */}
+        <form action={signInWithGoogle} className="w-full">
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-3 rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-gray-700 shadow-sm border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all duration-150 cursor-pointer"
+            aria-label="Continuar con Google"
+            className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl border border-border bg-surface px-6 py-3.5 text-sm font-semibold text-surface-foreground hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 active:scale-95 touch-manipulation transition-[opacity,transform] duration-150"
           >
             <GoogleIcon />
             Continuar con Google
@@ -54,7 +279,8 @@ export default function LoginPage() {
         </form>
       </div>
 
-      <p className="text-xs text-foreground/40 text-center max-w-xs">
+      {/* Legal */}
+      <p className="max-w-xs text-center text-xs text-foreground/40">
         Al continuar, aceptás los términos y condiciones de MiGrilla.
       </p>
     </main>
