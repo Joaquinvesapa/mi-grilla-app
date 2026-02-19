@@ -1,15 +1,93 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #fee4c7;
-  --color-primary: #07b89c;
-  --color-foreground: #1a1a1a;
-  --font-sans: var(--font-poppins), system-ui, sans-serif;
-  --font-secondary: var(--font-raleway), system-ui, sans-serif;
+  /* ============================================================
+   * BASE
+   * Colores base de la app (fondo general, texto principal)
+   * ============================================================ */
+  --color-background: #fee4c7; /* Peach cálido — fondo de la app */
+  --color-foreground: #1a1a1a; /* Texto principal */
+
+  /* ============================================================
+   * PRIMARIO
+   * Color dominante de la marca / acciones principales
+   * ============================================================ */
+  --color-primary: #07b89c; /* Turquesa */
+  --color-primary-foreground: #ffffff;
+
+  /* ============================================================
+   * DÍAS DEL FESTIVAL
+   * Color de fondo de la grilla por día.
+   * Extraídos de las imágenes oficiales de Lollapalooza AR 2025.
+   * También usados al generar la imagen exportable (Canvas API).
+   * ============================================================ */
+  --color-day-viernes: #0cbba5; /* Teal vibrante — Viernes */
+  --color-day-sabado: #ddc98a; /* Beige arenoso cálido — Sábado */
+  --color-day-domingo: #e85555; /* Coral/rojo cálido — Domingo */
+
+  /* ============================================================
+   * ACCENTOS DE LA IDENTIDAD VISUAL DEL FESTIVAL
+   * Colores decorativos extraídos de los assets gráficos.
+   * Usados en ilustraciones, bordes, badges y la imagen exportable.
+   * ============================================================ */
+  --color-accent-pink: #f02d7d; /* Hot pink / magenta */
+  --color-accent-yellow: #d4ec2a; /* Lime yellow */
+  --color-accent-cyan: #00d0e8; /* Cyan brillante */
+  --color-accent-green: #50c82c; /* Verde neón */
+
+  /* ============================================================
+   * GRILLA / SCHEDULE
+   * Colores de las celdas, headers de escenario y líneas.
+   * ============================================================ */
+  --color-grid-cell: #ffffff; /* Fondo de cada bloque de artista */
+  --color-grid-cell-foreground: #000000; /* Texto dentro del bloque */
+  --color-grid-header: #ffffff; /* Fondo del header de escenario */
+  --color-grid-header-foreground: #000000; /* Texto del header de escenario */
+
+  /* ============================================================
+   * NAV / SURFACE
+   * Fondos de componentes UI (bottom nav, cards, sheets)
+   * ============================================================ */
+  --color-surface: #ffffff; /* Fondo de componentes sobre el background */
+  --color-surface-foreground: #1a1a1a; /* Texto sobre surface */
+  --color-border: #e5d5c5; /* Bordes sutiles */
+  --color-muted: #a09080; /* Texto secundario / inactivo */
+
+  /* ============================================================
+   * TIPOGRAFÍA
+   * --font-display → Anton: headings, artistas, títulos, ALL CAPS
+   * --font-sans    → Host Grotesk: cuerpo, UI, horarios, subtítulos
+   * ============================================================ */
+  --font-display: var(--font-anton), system-ui, sans-serif;
+  --font-sans: var(--font-host-grotesk), system-ui, sans-serif;
+}
+
+/* ============================================================
+ * DARK MODE
+ * Se activa con la clase .dark en el <html>
+ * Todos los tokens semánticos se redefinen acá
+ * ============================================================ */
+.dark {
+  --color-background: #0f0f0f; /* Negro profundo */
+  --color-foreground: #f0ece8; /* Crema suave */
+  --color-primary: #0dd4b4; /* Turquesa más brillante en dark */
+  --color-primary-foreground: #0f0f0f;
+  --color-surface: #1c1c1c; /* Cards, bottom nav */
+  --color-surface-foreground: #f0ece8;
+  --color-border: #2a2a2a; /* Bordes oscuros */
+  --color-muted: #6b6560; /* Texto inactivo */
+  --color-grid-cell: #1c1c1c;
+  --color-grid-cell-foreground: #f0ece8;
+  --color-grid-header: #141414;
+  --color-grid-header-foreground: #f0ece8;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
+  /* Smooth transition when toggling dark mode */
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }

@@ -222,7 +222,44 @@ group_members
 - Bottom navigation bar (mobile-first)
 - Bottom sheets para detalles de artistas y acciones
 - Animaciones con Framer Motion (entrada de listas, transiciones)
-- Fuente: Inter (sistema)
+- **Fuente display** (`--font-display`): **Anton** — headings, nombres de artistas, títulos, ALL CAPS
+- **Fuente body** (`--font-sans`): **Host Grotesk** — UI general, horarios, subtítulos, navegación
+
+### Paleta de colores (extraída de Lollapalooza AR 2025)
+
+Todos los tokens están definidos en `app/globals.css` bajo `@theme inline`.
+Se usan tanto en la UI de la app como en la generación de imagen (Canvas API).
+
+#### Base
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `--color-background` | `#fee4c7` | Fondo general de la app |
+| `--color-foreground` | `#1a1a1a` | Texto principal |
+| `--color-primary` | `#07b89c` | Acciones principales, turquesa |
+| `--color-primary-foreground` | `#ffffff` | Texto sobre primario |
+
+#### Días del festival
+| Token | Valor | Día |
+|-------|-------|-----|
+| `--color-day-viernes` | `#0cbba5` | Teal vibrante |
+| `--color-day-sabado`  | `#ddc98a` | Beige arenoso cálido |
+| `--color-day-domingo` | `#e85555` | Coral / rojo cálido |
+
+#### Accentos de identidad visual
+| Token | Valor | Descripción |
+|-------|-------|-------------|
+| `--color-accent-pink`   | `#f02d7d` | Hot pink / magenta |
+| `--color-accent-yellow` | `#d4ec2a` | Lime yellow |
+| `--color-accent-cyan`   | `#00d0e8` | Cyan brillante |
+| `--color-accent-green`  | `#50c82c` | Verde neón |
+
+#### Grilla
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `--color-grid-cell` | `#ffffff` | Fondo de bloque de artista |
+| `--color-grid-cell-foreground` | `#000000` | Texto del bloque |
+| `--color-grid-header` | `#ffffff` | Fondo del header de escenario |
+| `--color-grid-header-foreground` | `#000000` | Texto del header de escenario |
 
 ---
 

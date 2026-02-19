@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Poppins, Raleway } from "next/font/google";
+import { Anton, Host_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
+// Display font — headings, artist names, titles, ALL CAPS impact text
+const anton = Anton({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
+  weight: "400",
+  variable: "--font-anton",
 });
 
-const raleway = Raleway({
+// Body font — UI text, times, descriptions, navigation
+const hostGrotesk = Host_Grotesk({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-raleway",
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-host-grotesk",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${poppins.variable} ${raleway.variable} antialiased`}>
+      <body
+        className={`${anton.variable} ${hostGrotesk.variable} font-sans antialiased`}
+      >
         {children}
       </body>
     </html>

@@ -31,10 +31,10 @@ function GoogleIcon() {
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-6">
+    <main className="flex min-h-screen font-sans flex-col items-center justify-center gap-8 px-6">
       <div className="flex flex-col items-center gap-3 text-center">
         <span className="text-6xl">🎸</span>
-        <h1 className="text-4xl font-bold tracking-tight">
+        <h1 className="text-4xl font-display tracking-tight">
           Mi<span style={{ color: "var(--color-primary)" }}>Grilla</span>
         </h1>
         <p className="text-base text-foreground/60 max-w-xs">
