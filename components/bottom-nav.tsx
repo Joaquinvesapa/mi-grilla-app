@@ -113,7 +113,7 @@ export function BottomNav() {
         "fixed bottom-0 left-0 right-0 z-50",
         "h-16 border-t",
         "flex items-stretch",
-        "touch-action-manipulation",
+        "touch-manipulation",
       )}
       style={{
         backgroundColor: "var(--color-surface)",
@@ -134,7 +134,7 @@ export function BottomNav() {
               "flex flex-1 flex-col items-center justify-center gap-1",
               "text-xs font-medium font-sans",
               "transition-colors duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
               "hover:opacity-80",
               isActive ? "text-primary" : "hover:text-primary",
             )}

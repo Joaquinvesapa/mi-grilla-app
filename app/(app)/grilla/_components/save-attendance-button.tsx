@@ -54,7 +54,8 @@ export function SaveAttendanceButton({
         onClick={handleSave}
         disabled={isSaving || isSaved}
         className={cn(
-          "flex items-center gap-2 rounded-full px-5 py-3 font-display text-sm uppercase tracking-wider shadow-xl transition-all duration-200",
+          "flex items-center gap-2 rounded-full px-5 py-3 font-display text-sm uppercase tracking-wider shadow-xl transition-[background-color,opacity,transform] duration-200",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
           isSaved
             ? "bg-primary text-primary-foreground"
             : isError
@@ -101,7 +102,7 @@ export function SaveAttendanceButton({
         )}
 
         {isSaving
-          ? "Guardando..."
+          ? "Guardando\u2026"
           : isSaved
             ? "Guardado"
             : isError

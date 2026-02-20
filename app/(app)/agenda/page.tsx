@@ -30,8 +30,8 @@ export default async function AgendaPage() {
         </h1>
         <p className="font-sans text-sm text-muted">
           {isAuthenticated
-            ? "Tu seleccion de shows del festival"
-            : "Inicia sesion para ver tu agenda"}
+            ? "Tu selección de shows del festival"
+            : "Iniciá sesión para ver tu agenda"}
         </p>
       </div>
 

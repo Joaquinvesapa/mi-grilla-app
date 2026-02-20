@@ -83,7 +83,7 @@ export default async function PerfilPage() {
       <form action={signOut}>
         <button
           type="submit"
-          className="px-6 py-3 rounded-full font-sans color-primary-foreground text-sm font-medium uppercase tracking-wide transition-opacity hover:opacity-80 active:scale-95"
+          className="px-6 py-3 rounded-full font-sans text-sm font-medium uppercase tracking-wide transition-opacity hover:opacity-80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           style={{
             backgroundColor: "var(--color-primary)",
             color: "var(--color-primary-foreground)",

@@ -174,7 +174,7 @@ export function parseSchedule(schedule: RawSchedule): GridDay[] {
  */
 export const STAGE_COLORS: Record<string, string> = {
   "Flow Stage": "rgba(58, 134, 255, 0.22)",       // Blue
-  "Samsung Stage": "rgba(245, 180, 0, 0.22)",      // Amber
+  "Samsung Stage": "rgba(138, 201, 38, 0.22)",      // Green
   "Alternative Stage": "rgba(255, 0, 110, 0.18)",  // Pink
   "Perry's Stage": "rgba(131, 56, 236, 0.18)",     // Purple
   KidzaPalooza: "rgba(251, 86, 7, 0.18)",          // Orange
@@ -185,7 +185,7 @@ export const STAGE_COLORS: Record<string, string> = {
  */
 export const STAGE_BORDER_COLORS: Record<string, string> = {
   "Flow Stage": "rgba(58, 134, 255, 0.50)",       // Blue
-  "Samsung Stage": "rgba(245, 180, 0, 0.50)",     // Amber
+  "Samsung Stage": "rgba(138, 201, 38, 0.50)",     // Green
   "Alternative Stage": "rgba(255, 0, 110, 0.40)", // Pink
   "Perry's Stage": "rgba(131, 56, 236, 0.40)",    // Purple
   KidzaPalooza: "rgba(251, 86, 7, 0.35)",         // Orange
@@ -197,7 +197,7 @@ export const STAGE_BORDER_COLORS: Record<string, string> = {
  */
 export const STAGE_SELECTED_COLORS: Record<string, string> = {
   "Flow Stage": "rgb(58, 134, 255)",       // Blue
-  "Samsung Stage": "rgb(245, 180, 0)",     // Amber
+  "Samsung Stage": "rgb(138, 201, 38)",     // Green
   "Alternative Stage": "rgb(255, 0, 110)", // Pink
   "Perry's Stage": "rgb(131, 56, 236)",    // Purple
   KidzaPalooza: "rgb(251, 86, 7)",         // Orange
@@ -208,7 +208,7 @@ export const STAGE_SELECTED_COLORS: Record<string, string> = {
  */
 export const STAGE_SELECTED_BORDER_COLORS: Record<string, string> = {
   "Flow Stage": "rgb(80, 155, 255)",        // Blue light
-  "Samsung Stage": "rgb(255, 200, 40)",     // Amber light
+  "Samsung Stage": "rgb(163, 221, 58)",     // Green light
   "Alternative Stage": "rgb(255, 50, 140)", // Pink light
   "Perry's Stage": "rgb(155, 85, 245)",     // Purple light
   KidzaPalooza: "rgb(255, 110, 40)",        // Orange light

@@ -43,8 +43,6 @@ export function ArtistCard({
   const bgColor = isSelected ? bgSelected : bgDefault;
   const borderColor = isSelected ? borderSelected : borderDefault;
 
-
-
   function handleClick() {
     if (isSelectable && onToggle) {
       onToggle(artist.id);
@@ -58,10 +56,12 @@ export function ArtistCard({
       disabled={!isSelectable}
       aria-pressed={isSelectable ? isSelected : undefined}
       className={cn(
-        "relative flex flex-col items-center justify-center rounded-sm border-l-2 px-3 py-0 text-center transition-all duration-150",
+        "relative flex flex-col items-center justify-center rounded-sm border-l-2 px-3 py-0 text-center transition-[background-color,border-color,opacity,transform,box-shadow] duration-150",
         isSelectable ? "cursor-pointer active:scale-[0.97]" : "cursor-default",
         isSelectable && !isSelected && "hover:brightness-125",
         isSelected && "ring-1 ring-grid-text/30",
+        isSelectable &&
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
       )}
       style={{
         gridColumn: col,
@@ -85,7 +85,7 @@ export function ArtistCard({
       {artist.subtitle && durationMin >= 45 && (
         <span
           className={cn(
-            "text-md leading-tight",
+            "text-md leading-tight font-sans",
             isSelected ? "text-white/70" : "text-grid-text-muted",
           )}
         >
@@ -96,7 +96,7 @@ export function ArtistCard({
       {durationMin >= 40 && (
         <span
           className={cn(
-            "mt-0.5 text-md leading-tight tabular-nums",
+            "mt-0.5 text-md leading-tight tabular-nums font-sans",
             isSelected ? "text-white/60" : "text-grid-text-muted",
           )}
         >

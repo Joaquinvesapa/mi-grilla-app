@@ -12,7 +12,7 @@ export default function Home() {
       </div>
 
       <div
-        className="rounded-2xl px-8 py-4 text-white font-semibold text-base cursor-pointer"
+        className="rounded-2xl px-8 py-4 text-white font-semibold text-base"
         style={{ backgroundColor: "var(--color-primary)" }}
       >
         Próximamente

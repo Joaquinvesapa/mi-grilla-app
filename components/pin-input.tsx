@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
 
 const PIN_LENGTH = 6;
@@ -14,6 +14,14 @@ interface PinInputProps {
 export function PinInput({ name, autoFocus = false, hasError = false }: PinInputProps) {
   const [digits, setDigits] = useState<string[]>(Array(PIN_LENGTH).fill(""));
   const refs = useRef<Array<HTMLInputElement | null>>(Array(PIN_LENGTH).fill(null));
+
+  // autoFocus solo en desktop (pointer: fine) para no disparar teclado virtual en mobile
+  useEffect(() => {
+    if (!autoFocus) return;
+    if (window.matchMedia("(pointer: fine)").matches) {
+      refs.current[0]?.focus();
+    }
+  }, [autoFocus]);
 
   const pinValue = digits.join("");
 
@@ -92,9 +100,8 @@ export function PinInput({ name, autoFocus = false, hasError = false }: PinInput
               pattern="[0-9]*"
               maxLength={1}
               value={digit}
-              autoFocus={autoFocus && i === 0}
               aria-label={`Dígito ${i + 1} de ${PIN_LENGTH}`}
-              autoComplete="off"
+              autoComplete="one-time-code"
               spellCheck={false}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
@@ -102,7 +109,7 @@ export function PinInput({ name, autoFocus = false, hasError = false }: PinInput
               onFocus={(e) => e.target.select()}
               className={cn(
                 "h-14 w-full max-w-[46px] rounded-xl border-2 bg-surface text-center text-xl font-bold text-surface-foreground",
-                "focus-visible:outline-none touch-manipulation",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary touch-manipulation",
                 "transition-[border-color,background-color] duration-150",
                 isFilled && !hasError && "border-primary bg-primary/5",
                 !isFilled && !hasError && "border-border",
