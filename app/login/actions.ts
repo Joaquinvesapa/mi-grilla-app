@@ -19,7 +19,7 @@ const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
 const PIN_REGEX = /^[0-9]{6}$/;
 
 const AVATAR_COLORS = [
-  "#F5B400",
+  "#8ac926",
   "#FB5607",
   "#FF006E",
   "#8338EC",

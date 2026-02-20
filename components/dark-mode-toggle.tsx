@@ -11,10 +11,14 @@ export function DarkModeToggle() {
     if (stored === "light") {
       setIsDark(false);
       document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#fdf8ff");
     } else {
       // Default: dark (stored === "dark" or no preference)
       setIsDark(true);
       document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#0a0a14");
     }
   }, []);
 
@@ -22,6 +26,8 @@ export function DarkModeToggle() {
     const next = !isDark;
     setIsDark(next);
     document.documentElement.classList.toggle("dark", next);
+    document.documentElement.style.colorScheme = next ? "dark" : "light";
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next ? "#0a0a14" : "#fdf8ff");
     localStorage.setItem("theme", next ? "dark" : "light");
   }
 
@@ -30,9 +36,6 @@ export function DarkModeToggle() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? "Activar modo claro" : "Activar modo oscuro"}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") toggle();
-      }}
       className={[
         "fixed top-4 right-4 z-50",
         "flex items-center justify-center",
@@ -40,7 +43,7 @@ export function DarkModeToggle() {
         "border shadow-sm",
         "transition-colors duration-150",
         "hover:opacity-80",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
       ].join(" ")}
       style={{
         backgroundColor: "var(--color-surface)",

@@ -130,6 +130,7 @@ export function DownloadGrillaButton({
             className={cn(
               "relative z-10 w-[320px] rounded-2xl border p-6 shadow-2xl",
               "flex flex-col gap-5",
+              "overscroll-contain",
             )}
             style={{
               backgroundColor: "var(--color-surface)",
@@ -145,10 +146,10 @@ export function DownloadGrillaButton({
                 Descargar grilla
               </h3>
               <p
-                className="text-sm"
+                className="text-sm font-sans"
                 style={{ color: "var(--color-muted)" }}
               >
-                Eleg\u00ed el d\u00eda que quer\u00e9s descargar
+                Elegí el día que queres descargar
               </p>
             </div>
 
@@ -172,7 +173,8 @@ export function DownloadGrillaButton({
                     className={cn(
                       "flex items-center justify-center gap-2 rounded-lg px-4 py-3",
                       "font-display text-sm uppercase tracking-wider",
-                      "transition-all duration-150",
+                      "transition-[background-color,opacity,transform,border-color] duration-150",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                       "disabled:opacity-60",
                       isGenerating || isDone || isError
                         ? `${accentBg} text-white`
@@ -226,7 +228,7 @@ export function DownloadGrillaButton({
                     )}
 
                     {isGenerating
-                      ? "Generando..."
+                      ? "Generando\u2026"
                       : isDone
                         ? "\u00a1Listo!"
                         : isError
@@ -243,7 +245,8 @@ export function DownloadGrillaButton({
               onClick={() => setShowPicker(false)}
               disabled={status === "generating"}
               className={cn(
-                "text-sm font-medium transition-colors",
+                "text-sm font-sans font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded",
                 "disabled:opacity-40",
               )}
               style={{ color: "var(--color-muted)" }}

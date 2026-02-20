@@ -26,7 +26,7 @@ const LOGO_HEIGHT = Math.round(LOGO_WIDTH / LOGO_ASPECT_RATIO);
 const DAY_LABEL_FONT_SIZE = 62;
 const HEADER_ROW_HEIGHT = LOGO_HEIGHT; // logo + day label share this row
 const STAGE_HEADER_HEIGHT = 94;
-const TIME_AXIS_WIDTH = 144;
+const TIME_AXIS_WIDTH = 90;
 const CARD_GAP = 3; // px gap between artist cards
 const CARD_BORDER_LEFT = 3; // left accent border width — matches screen border-l-2
 
@@ -96,38 +96,38 @@ const DAY_ACCENT_COLORS: Record<string, string> = {
 
 /** Solid stage background for SELECTED artist cards */
 const STAGE_SELECTED_BG: Record<string, string> = {
-  "Flow Stage": "rgb(58, 134, 255)",       // Blue
-  "Samsung Stage": "rgb(245, 180, 0)",     // Amber
+  "Flow Stage": "rgb(58, 134, 255)", // Blue
+  "Samsung Stage": "rgb(138, 201, 38)", // Green
   "Alternative Stage": "rgb(255, 0, 110)", // Pink
-  "Perry's Stage": "rgb(131, 56, 236)",    // Purple
-  KidzaPalooza: "rgb(251, 86, 7)",         // Orange
+  "Perry's Stage": "rgb(131, 56, 236)", // Purple
+  KidzaPalooza: "rgb(251, 86, 7)", // Orange
 };
 
 /** Semi-transparent stage background for NON-selected artist cards — very subtle */
 const STAGE_DEFAULT_BG: Record<string, string> = {
-  "Flow Stage": "rgba(58, 134, 255, 0.07)",       // Blue
-  "Samsung Stage": "rgba(245, 180, 0, 0.07)",     // Amber
+  "Flow Stage": "rgba(58, 134, 255, 0.07)", // Blue
+  "Samsung Stage": "rgba(138, 201, 38, 0.07)", // Green
   "Alternative Stage": "rgba(255, 0, 110, 0.05)", // Pink
-  "Perry's Stage": "rgba(131, 56, 236, 0.05)",    // Purple
-  KidzaPalooza: "rgba(251, 86, 7, 0.04)",         // Orange
+  "Perry's Stage": "rgba(131, 56, 236, 0.05)", // Purple
+  KidzaPalooza: "rgba(251, 86, 7, 0.04)", // Orange
 };
 
 /** Left border accent — selected */
 const STAGE_SELECTED_BORDER: Record<string, string> = {
-  "Flow Stage": "rgb(80, 155, 255)",        // Blue light
-  "Samsung Stage": "rgb(255, 200, 40)",     // Amber light
+  "Flow Stage": "rgb(80, 155, 255)", // Blue light
+  "Samsung Stage": "rgb(163, 221, 58)", // Green light
   "Alternative Stage": "rgb(255, 50, 140)", // Pink light
-  "Perry's Stage": "rgb(155, 85, 245)",     // Purple light
-  KidzaPalooza: "rgb(255, 110, 40)",        // Orange light
+  "Perry's Stage": "rgb(155, 85, 245)", // Purple light
+  KidzaPalooza: "rgb(255, 110, 40)", // Orange light
 };
 
 /** Left border accent — non-selected — barely visible */
 const STAGE_DEFAULT_BORDER: Record<string, string> = {
-  "Flow Stage": "rgba(58, 134, 255, 0.20)",       // Blue
-  "Samsung Stage": "rgba(245, 180, 0, 0.20)",     // Amber
+  "Flow Stage": "rgba(58, 134, 255, 0.20)", // Blue
+  "Samsung Stage": "rgba(138, 201, 38, 0.20)", // Green
   "Alternative Stage": "rgba(255, 0, 110, 0.15)", // Pink
-  "Perry's Stage": "rgba(131, 56, 236, 0.15)",    // Purple
-  KidzaPalooza: "rgba(251, 86, 7, 0.12)",         // Orange
+  "Perry's Stage": "rgba(131, 56, 236, 0.15)", // Purple
+  KidzaPalooza: "rgba(251, 86, 7, 0.12)", // Orange
 };
 
 // ============================================================
@@ -376,7 +376,10 @@ export async function generateGrillaImage(
     const maxW = colWidth - 14;
     drawMultilineText(
       ctx,
-      day.stages[i].name.toUpperCase(),
+      day.stages[i].name
+        .replace(/\s*Stage\s*$/i, "")
+        .trim()
+        .toUpperCase(),
       x,
       y,
       maxW,
@@ -558,9 +561,14 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
   const nameUpper = artist.name.toUpperCase();
   ctx.font = `400 ${nameFontSize}px ${displayFont}`;
   const nameWords = nameUpper.split(" ");
-  const widestWord = Math.max(...nameWords.map((w) => ctx.measureText(w).width));
+  const widestWord = Math.max(
+    ...nameWords.map((w) => ctx.measureText(w).width),
+  );
   if (widestWord > maxTextW) {
-    nameFontSize = Math.max(12, Math.floor(nameFontSize * (maxTextW / widestWord)));
+    nameFontSize = Math.max(
+      12,
+      Math.floor(nameFontSize * (maxTextW / widestWord)),
+    );
     ctx.font = `400 ${nameFontSize}px ${displayFont}`;
   }
 
@@ -575,7 +583,7 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
   // Calculate vertical text block height for centering
   let textBlockHeight = nameFontSize;
   if (hasSubtitle) textBlockHeight += subtitleFontSize + 4;
-  if (hasTime) textBlockHeight += timeFontSize + 4;
+  if (hasTime) textBlockHeight += timeFontSize + 8;
 
   const textStartY = y + (h - textBlockHeight) / 2 + nameFontSize / 2;
 
@@ -593,7 +601,9 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
   let nextTextY = textStartY + nameFontSize / 2;
   if (hasSubtitle && artist.subtitle) {
     nextTextY += subtitleFontSize + 2;
-    ctx.fillStyle = isSelected ? "rgba(255,255,255,0.70)" : colors.gridTextDimmed;
+    ctx.fillStyle = isSelected
+      ? "rgba(255,255,255,0.70)"
+      : colors.gridTextDimmed;
     ctx.font = `400 ${subtitleFontSize}px ${sansFont}`;
     const subText = truncateText(ctx, artist.subtitle, maxTextW);
     ctx.fillText(subText, textX, nextTextY);
@@ -601,10 +611,16 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
 
   // Time range — screen: text-md mt-0.5 leading-tight tabular-nums
   if (hasTime) {
-    nextTextY += timeFontSize + 2;
-    ctx.fillStyle = isSelected ? "rgba(255,255,255,0.60)" : colors.gridTextDimmed;
-    ctx.font = `500 ${timeFontSize}px ${sansFont}`;
-    ctx.fillText(`${artist.startTime} \u2013 ${artist.endTime}`, textX, nextTextY);
+    nextTextY += timeFontSize + 6;
+    ctx.fillStyle = isSelected
+      ? "rgba(255,255,255,0.95)"
+      : colors.gridTextDimmed;
+    ctx.font = `${isSelected ? 800 : 700} ${timeFontSize}px ${sansFont}`;
+    ctx.fillText(
+      `${artist.startTime} \u2013 ${artist.endTime}`,
+      textX,
+      nextTextY,
+    );
   }
 
   ctx.restore();
@@ -618,7 +634,10 @@ export async function downloadOrShareImage(
   blob: Blob,
   dayLabel: string,
 ): Promise<void> {
-  const fileName = `migrilla-${dayLabel.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}.jpg`;
+  const fileName = `migrilla-${dayLabel
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")}.jpg`;
 
   // Try native share on mobile
   if (navigator.share && navigator.canShare) {

@@ -118,7 +118,7 @@ export function ScheduleGrid({
                 backgroundColor: "var(--color-grid-bg)",
               }}
             >
-              {stage.name}
+              {stage.name.replace(/\s*Stage\s*$/i, "").trim()}
             </div>
           ))}
 

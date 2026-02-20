@@ -50,7 +50,7 @@
    * Usados en ilustraciones, bordes, badges y la imagen exportable.
    * ============================================================ */
   --color-accent-pink: #FF006E;   /* Hot pink / magenta */
-  --color-accent-yellow: #F5B400; /* Amber cálido */
+  --color-accent-yellow: #8ac926; /* Green vibrante */
   --color-accent-cyan: #3A86FF;   /* Electric blue */
   --color-accent-green: #FB5607;  /* Orange vibrante */
 
@@ -130,5 +130,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   body {
     transition: none;
+  }
+
+  .animate-slide-in-right,
+  .animate-slide-in-left {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
