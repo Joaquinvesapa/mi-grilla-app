@@ -20,7 +20,7 @@ export function TimeAxis({ bounds }: TimeAxisProps) {
         return (
           <div
             key={marker.minutes}
-            className="pointer-events-none sticky left-0 z-10 flex items-start justify-end border-r border-grid-border pr-2 font-sans text-[10px] font-medium leading-none tabular-nums"
+            className="pointer-events-none sticky left-0 z-10 flex items-start justify-end border-r border-grid-border pr-2 font-sans text-xs font-medium leading-none tabular-nums"
             style={{
               gridColumn: 1,
               gridRowStart: row,

@@ -43,6 +43,8 @@ export function ArtistCard({
   const bgColor = isSelected ? bgSelected : bgDefault;
   const borderColor = isSelected ? borderSelected : borderDefault;
 
+
+
   function handleClick() {
     if (isSelectable && onToggle) {
       onToggle(artist.id);
@@ -56,7 +58,7 @@ export function ArtistCard({
       disabled={!isSelectable}
       aria-pressed={isSelectable ? isSelected : undefined}
       className={cn(
-        "relative flex flex-col items-center justify-center overflow-hidden rounded-sm border-l-2 px-1 text-center transition-all duration-150",
+        "relative flex flex-col items-center justify-center rounded-sm border-l-2 px-3 py-0 text-center transition-all duration-150",
         isSelectable ? "cursor-pointer active:scale-[0.97]" : "cursor-default",
         isSelectable && !isSelected && "hover:brightness-125",
         isSelected && "ring-1 ring-grid-text/30",
@@ -70,32 +72,11 @@ export function ArtistCard({
         minHeight: 0,
       }}
     >
-      {/* Selected checkmark badge */}
-      {/*{isSelected && (
-        <span className="absolute top-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/90">
-          <svg
-            width="8"
-            height="8"
-            viewBox="0 0 12 12"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 6.5L4.5 9L10 3"
-              stroke="#1a1a1a"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-      )}*/}
-
       <span
         className={cn(
-          "font-display uppercase leading-tight tracking-wide",
+          "line-clamp-2 w-full font-display uppercase leading-tight tracking-normal",
           isSelected ? "text-white" : "text-grid-text",
-          durationMin >= 45 ? "text-xs" : "text-[10px]",
+          durationMin >= 45 ? "text-2xl" : "text-lg",
         )}
       >
         {artist.name}
@@ -104,7 +85,7 @@ export function ArtistCard({
       {artist.subtitle && durationMin >= 45 && (
         <span
           className={cn(
-            "text-[9px] leading-tight",
+            "text-md leading-tight",
             isSelected ? "text-white/70" : "text-grid-text-muted",
           )}
         >
@@ -115,7 +96,7 @@ export function ArtistCard({
       {durationMin >= 40 && (
         <span
           className={cn(
-            "mt-0.5 text-[9px] leading-tight tabular-nums",
+            "mt-0.5 text-md leading-tight tabular-nums",
             isSelected ? "text-white/60" : "text-grid-text-muted",
           )}
         >
