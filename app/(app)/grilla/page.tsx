@@ -1,7 +1,7 @@
 import { parseSchedule } from "@/lib/schedule-utils";
 import type { RawSchedule } from "@/lib/schedule-types";
 import { ScheduleGrid } from "./_components/schedule-grid";
-import { getMyAttendance } from "./actions";
+import { getMyAttendance, getSocialAttendance } from "./actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import scheduleData from "@/lollapalooza-schedule.json";
 
@@ -14,12 +14,14 @@ export default async function GrillaPage() {
   const data = scheduleData as RawSchedule;
   const days = parseSchedule(data);
 
-  // Check auth + fetch initial attendance in parallel
+  // Check auth + fetch initial attendance + social data in parallel
   const supabase = await createServerSupabaseClient();
-  const [{ data: authData }, initialAttendance] = await Promise.all([
-    supabase.auth.getUser(),
-    getMyAttendance(),
-  ]);
+  const [{ data: authData }, initialAttendance, socialAttendance] =
+    await Promise.all([
+      supabase.auth.getUser(),
+      getMyAttendance(),
+      getSocialAttendance(),
+    ]);
 
   const isAuthenticated = !!authData.user;
 
@@ -40,6 +42,7 @@ export default async function GrillaPage() {
         days={days}
         initialAttendance={initialAttendance}
         isAuthenticated={isAuthenticated}
+        socialAttendance={socialAttendance}
       />
     </div>
   );

@@ -31,18 +31,36 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Rutas públicas que no requieren sesión
+  // Public routes that don't require a session
   const isPublic =
-    pathname === "/login" || pathname.startsWith("/auth");
+    pathname === "/login" ||
+    pathname.startsWith("/auth");
 
-  // Si no hay sesión → login (siempre, incluso en "/")
+  // Onboarding is accessible only WITH a session (but without profile)
+  const isOnboarding = pathname === "/onboarding";
+
+  // ── No session → login (except public routes) ──
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Si ya hay sesión y trata de ir al login o a la raíz → grilla
+  // ── Has session → prevent going back to login or root ──
   if (user && (pathname === "/login" || pathname === "/")) {
     return NextResponse.redirect(new URL("/grilla", request.url));
+  }
+
+  // ── Has session + app route → check if profile exists ──
+  // Skip this check for onboarding and public routes to avoid infinite redirects
+  if (user && !isPublic && !isOnboarding) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
   }
 
   return supabaseResponse;

@@ -1,55 +1,42 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Image from "next/image";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { Profile } from "@/lib/profile-types";
+import { ProfileEditForm } from "./_components/profile-edit-form";
 import { signOut } from "./actions";
 
 export default async function PerfilPage() {
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    },
-  );
+  const supabase = await createServerSupabaseClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
-  const name: string = user.user_metadata?.full_name ?? user.email ?? "Usuario";
-  const username: string = (
-    user.user_metadata?.name ??
-    user.email?.split("@")[0] ??
-    "usuario"
-  )
-    .toLowerCase()
-    .replace(/\s+/g, "");
-  const avatarUrl: string | null = user.user_metadata?.avatar_url ?? null;
+  // ── Fetch profile from the profiles table ──
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) redirect("/onboarding");
+
+  const typedProfile = profile as Profile;
+
+  // Google avatar from user_metadata (if available)
+  const googleAvatarUrl: string | null =
+    user.user_metadata?.avatar_url ?? null;
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 gap-8">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center px-6 pt-12 pb-8 gap-8">
       {/* Avatar */}
       <div className="relative">
-        {avatarUrl ? (
+        {googleAvatarUrl ? (
           <Image
-            src={avatarUrl}
-            alt={`Foto de perfil de ${name}`}
+            src={googleAvatarUrl}
+            alt={`Foto de perfil de ${typedProfile.username}`}
             width={96}
             height={96}
             className="rounded-full object-cover"
@@ -61,33 +48,44 @@ export default async function PerfilPage() {
           />
         ) : (
           <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold"
+            className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-display uppercase"
             style={{
-              backgroundColor: "var(--color-primary)",
-              color: "var(--color-primary-foreground)",
+              backgroundColor: typedProfile.avatar,
+              color: "#ffffff",
             }}
           >
-            {name.charAt(0).toUpperCase()}
+            {typedProfile.username.charAt(0)}
           </div>
         )}
       </div>
 
-      {/* Info */}
+      {/* Current username */}
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="text-3xl font-display uppercase tracking-tight text-foreground">
-          @{username}
+          @{typedProfile.username}
         </h1>
+        {typedProfile.instagram && (
+          <a
+            href={`https://instagram.com/${typedProfile.instagram}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted hover:text-primary transition-colors duration-150"
+          >
+            @{typedProfile.instagram}
+          </a>
+        )}
+      </div>
+
+      {/* Edit form */}
+      <div className="w-full max-w-xs">
+        <ProfileEditForm profile={typedProfile} />
       </div>
 
       {/* Sign out */}
-      <form action={signOut}>
+      <form action={signOut} className="w-full max-w-xs">
         <button
           type="submit"
-          className="px-6 py-3 rounded-full font-sans text-sm font-medium uppercase tracking-wide transition-opacity hover:opacity-80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          style={{
-            backgroundColor: "var(--color-primary)",
-            color: "var(--color-primary-foreground)",
-          }}
+          className="w-full cursor-pointer rounded-2xl border border-border bg-surface py-3.5 text-sm font-semibold uppercase tracking-wide text-muted hover:text-accent-pink hover:border-accent-pink/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-pink/50 focus-visible:ring-offset-2 active:scale-95 touch-manipulation transition-[color,border-color,transform] duration-150"
         >
           Cerrar sesión
         </button>

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { randomAvatar } from "@/lib/profile-types";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -18,22 +19,10 @@ const EMAIL_DOMAIN = "migrilla.app";
 const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
 const PIN_REGEX = /^[0-9]{6}$/;
 
-const AVATAR_COLORS = [
-  "#8ac926",
-  "#FB5607",
-  "#FF006E",
-  "#8338EC",
-  "#3A86FF",
-] as const;
-
 // ── Helpers ────────────────────────────────────────────────
 
 function toFakeEmail(username: string): string {
   return `${username}@${EMAIL_DOMAIN}`;
-}
-
-function randomAvatar(): string {
-  return AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)];
 }
 
 function validateUsername(raw: string): string | null {

@@ -7,6 +7,7 @@ import {
   STAGE_SELECTED_BORDER_COLORS,
 } from "@/lib/schedule-utils";
 import { cn } from "@/lib/utils";
+import type { SocialAttendee } from "../actions";
 
 interface ArtistCardProps {
   artist: GridArtist;
@@ -15,6 +16,7 @@ interface ArtistCardProps {
   isSelected?: boolean;
   isSelectable?: boolean;
   onToggle?: (artistId: string) => void;
+  socialAttendees?: SocialAttendee[];
 }
 
 export function ArtistCard({
@@ -23,7 +25,9 @@ export function ArtistCard({
   isSelected = false,
   isSelectable = false,
   onToggle,
+  socialAttendees,
 }: ArtistCardProps) {
+  const socialCount = socialAttendees?.length ?? 0;
   const rowStart = minuteToRow(artist.startMin, bounds.startMin);
   const rowEnd = minuteToRow(artist.endMin, bounds.startMin);
   const durationMin = artist.endMin - artist.startMin;
@@ -101,6 +105,36 @@ export function ArtistCard({
           )}
         >
           {artist.startTime} – {artist.endTime}
+        </span>
+      )}
+
+      {/* Social badge: friends/group members attending */}
+      {socialCount > 0 && (
+        <span
+          className="absolute right-1 top-1 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none shadow-sm"
+          style={{
+            backgroundColor: isSelected
+              ? "rgba(255,255,255,0.25)"
+              : "var(--color-primary)",
+            color: isSelected ? "#ffffff" : "var(--color-primary-foreground)",
+          }}
+          title={socialAttendees!
+            .map((a) => `@${a.username}`)
+            .join(", ")}
+        >
+          <svg
+            width="8"
+            height="8"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          {socialCount}
         </span>
       )}
     </button>

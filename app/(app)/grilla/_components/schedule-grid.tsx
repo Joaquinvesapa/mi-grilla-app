@@ -8,18 +8,20 @@ import { TimeAxis } from "./time-axis";
 import { DayTabs } from "./day-tabs";
 import { SaveAttendanceButton } from "./save-attendance-button";
 import { DownloadGrillaButton } from "./download-grilla-button";
-import { saveAttendance } from "../actions";
+import { saveAttendance, type SocialAttendee } from "../actions";
 
 interface ScheduleGridProps {
   days: GridDay[];
   initialAttendance?: string[];
   isAuthenticated?: boolean;
+  socialAttendance?: Record<string, SocialAttendee[]>;
 }
 
 export function ScheduleGrid({
   days,
   initialAttendance = [],
   isAuthenticated = false,
+  socialAttendance = {},
 }: ScheduleGridProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const day = days[activeDayIndex];
@@ -152,6 +154,7 @@ export function ScheduleGrid({
               isSelected={selectedArtists.has(artist.id)}
               isSelectable={isAuthenticated}
               onToggle={handleToggle}
+              socialAttendees={socialAttendance[artist.id]}
             />
           ))}
         </div>

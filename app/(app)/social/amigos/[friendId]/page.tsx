@@ -1,0 +1,82 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { parseSchedule } from "@/lib/schedule-utils";
+import type { RawSchedule } from "@/lib/schedule-types";
+import scheduleData from "@/lollapalooza-schedule.json";
+import { getMyAttendance } from "../../../grilla/actions";
+import { getFriendAttendance, getFriendProfile } from "../actions";
+import { CompareView } from "./_components/compare-view";
+
+// ── Page ───────────────────────────────────────────────────
+
+export default async function ComparePage({
+  params,
+}: {
+  params: Promise<{ friendId: string }>;
+}) {
+  const { friendId } = await params;
+
+  const [friendProfile, myAttendance, friendAttendance] = await Promise.all([
+    getFriendProfile(friendId),
+    getMyAttendance(),
+    getFriendAttendance(friendId),
+  ]);
+
+  // If not friends or profile not found, go back
+  if (!friendProfile) {
+    redirect("/social/amigos");
+  }
+
+  const data = scheduleData as RawSchedule;
+  const days = parseSchedule(data);
+
+  return (
+    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden px-4 pt-6">
+      {/* Header */}
+      <div className="flex shrink-0 items-center gap-3 pb-4">
+        <Link
+          href="/social/amigos"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:text-foreground hover:bg-foreground/5 transition-colors duration-150 touch-manipulation"
+          aria-label="Volver a amigos"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+          </svg>
+        </Link>
+
+        {/* Friend avatar */}
+        <div
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-display uppercase"
+          style={{ backgroundColor: friendProfile.avatar, color: "#ffffff" }}
+        >
+          {friendProfile.username.charAt(0)}
+        </div>
+
+        <div className="flex flex-col">
+          <h1 className="font-display text-lg uppercase tracking-wider text-foreground">
+            Vos vs @{friendProfile.username}
+          </h1>
+          <p className="text-xs text-muted">Comparación de agendas</p>
+        </div>
+      </div>
+
+      <CompareView
+        days={days}
+        myAttendance={myAttendance}
+        friendAttendance={friendAttendance}
+        friendProfile={friendProfile}
+      />
+    </div>
+  );
+}
