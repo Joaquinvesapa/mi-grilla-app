@@ -19,14 +19,11 @@ const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
 const PIN_REGEX = /^[0-9]{6}$/;
 
 const AVATAR_COLORS = [
-  "#07b89c",
-  "#f02d7d",
-  "#d4ec2a",
-  "#00d0e8",
-  "#50c82c",
-  "#e85555",
-  "#0cbba5",
-  "#ddc98a",
+  "#F5B400",
+  "#FB5607",
+  "#FF006E",
+  "#8338EC",
+  "#3A86FF",
 ] as const;
 
 // ── Helpers ────────────────────────────────────────────────

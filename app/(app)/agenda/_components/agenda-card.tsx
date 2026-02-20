@@ -30,7 +30,7 @@ export function AgendaCard({ artist, conflicts, onRemove }: AgendaCardProps) {
   return (
     <div
       className={cn(
-        "relative flex items-start gap-3 rounded-xl border-l-[3px] p-4 transition-colors duration-150",
+        "relative flex items-start gap-3 rounded-xl border border-border border-l-[3px] p-4 shadow-sm transition-colors duration-150",
         hasConflict
           ? "ring-1 ring-accent-pink/20"
           : "",
