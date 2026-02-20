@@ -1,255 +1,37 @@
 import type { GridDay, GridArtist } from "./schedule-types";
 
-import { createLogoSvg, LOGO_ASPECT_RATIO } from "./logo-svg";
+import {
+  IMG_WIDTH,
+  IMG_HEIGHT,
+  PADDING_X,
+  SAFE_TOP,
+  SAFE_BOTTOM,
+  HEADER_ROW_HEIGHT,
+  type ImageColors,
+  LIGHT_COLORS,
+  DARK_COLORS,
+  STAGE_SELECTED_BG,
+  STAGE_DEFAULT_BG,
+  STAGE_SELECTED_BORDER,
+  STAGE_DEFAULT_BORDER,
+  roundRect,
+  resolveFont,
+  truncateText,
+  formatTimeLabel,
+  drawMultilineText,
+  drawHeader,
+} from "./canvas-utils";
+
+// Re-export for backward compatibility — download-grilla-button.tsx imports from here
+export { downloadOrShareImage } from "./canvas-utils";
 
 // ============================================================
-// Image dimensions — iPhone Pro Max native resolution (19.5:9)
-// Retina-sharp at 3x, perfect for lock screen wallpaper
+// Grilla-specific layout constants
 // ============================================================
-const IMG_WIDTH = 1290;
-const IMG_HEIGHT = 2796;
-const PADDING_X = 50;
-
-// ============================================================
-// iPhone lock screen safe zones (at 3x resolution)
-// SAFE_TOP: below status bar + date + clock (~21% from top)
-// SAFE_BOTTOM: above home indicator + flashlight/camera (~12% from bottom)
-// ============================================================
-const SAFE_TOP = 520;
-const SAFE_BOTTOM = 330;
-
-// ============================================================
-// Layout constants — scaled ~1.2x from 1080 base for 1290 res
-// ============================================================
-const LOGO_WIDTH = 442;
-const LOGO_HEIGHT = Math.round(LOGO_WIDTH / LOGO_ASPECT_RATIO);
-const DAY_LABEL_FONT_SIZE = 62;
-const HEADER_ROW_HEIGHT = LOGO_HEIGHT; // logo + day label share this row
 const STAGE_HEADER_HEIGHT = 94;
 const TIME_AXIS_WIDTH = 90;
-const CARD_GAP = 3; // px gap between artist cards
-const CARD_BORDER_LEFT = 3; // left accent border width — matches screen border-l-2
-
-// ============================================================
-// Color configurations — matching globals.css tokens
-// ============================================================
-interface ImageColors {
-  background: string;
-  foreground: string;
-  gridBg: string;
-  gridCell: string;
-  gridCellForeground: string;
-  gridLine: string;
-  gridBorder: string;
-  gridTime: string;
-  gridText: string;
-  gridTextMuted: string;
-  gridTextDimmed: string; // very faded — non-selected artist names
-  gridHeaderBg: string;
-  gridHeaderForeground: string;
-  logoMain: string;
-  logoDetail: string;
-}
-
-const LIGHT_COLORS: ImageColors = {
-  background: "#fdf8ff",
-  foreground: "#1a1a2e",
-  gridBg: "#f8f4ff",
-  gridCell: "#ffffff",
-  gridCellForeground: "#000000",
-  gridLine: "rgba(0, 0, 0, 0.08)",
-  gridBorder: "rgba(0, 0, 0, 0.10)",
-  gridTime: "rgba(0, 0, 0, 0.50)",
-  gridText: "#1a1a2e",
-  gridTextMuted: "rgba(0, 0, 0, 0.45)",
-  gridTextDimmed: "rgba(0, 0, 0, 0.28)",
-  gridHeaderBg: "#f0eaf8",
-  gridHeaderForeground: "#1a1a2e",
-  logoMain: "#1a1a2e",
-  logoDetail: "#fdf8ff",
-};
-
-const DARK_COLORS: ImageColors = {
-  background: "#0a0a14",
-  foreground: "#eee8f5",
-  gridBg: "#0d0d1a",
-  gridCell: "#16162a",
-  gridCellForeground: "#eee8f5",
-  gridLine: "rgba(255, 255, 255, 0.08)",
-  gridBorder: "rgba(255, 255, 255, 0.10)",
-  gridTime: "rgba(255, 255, 255, 0.65)",
-  gridText: "#ffffff",
-  gridTextMuted: "rgba(255, 255, 255, 0.55)",
-  gridTextDimmed: "rgba(255, 255, 255, 0.28)",
-  gridHeaderBg: "#12122a",
-  gridHeaderForeground: "#eee8f5",
-  logoMain: "#eee8f5",
-  logoDetail: "#0a0a14",
-};
-
-/** Accent color per day label */
-const DAY_ACCENT_COLORS: Record<string, string> = {
-  Viernes: "#3A86FF",
-  "S\u00e1bado": "#8338EC",
-  Domingo: "#FF006E",
-};
-
-/** Solid stage background for SELECTED artist cards */
-const STAGE_SELECTED_BG: Record<string, string> = {
-  "Flow Stage": "rgb(58, 134, 255)", // Blue
-  "Samsung Stage": "rgb(138, 201, 38)", // Green
-  "Alternative Stage": "rgb(255, 0, 110)", // Pink
-  "Perry's Stage": "rgb(131, 56, 236)", // Purple
-  KidzaPalooza: "rgb(251, 86, 7)", // Orange
-};
-
-/** Semi-transparent stage background for NON-selected artist cards — very subtle */
-const STAGE_DEFAULT_BG: Record<string, string> = {
-  "Flow Stage": "rgba(58, 134, 255, 0.07)", // Blue
-  "Samsung Stage": "rgba(138, 201, 38, 0.07)", // Green
-  "Alternative Stage": "rgba(255, 0, 110, 0.05)", // Pink
-  "Perry's Stage": "rgba(131, 56, 236, 0.05)", // Purple
-  KidzaPalooza: "rgba(251, 86, 7, 0.04)", // Orange
-};
-
-/** Left border accent — selected */
-const STAGE_SELECTED_BORDER: Record<string, string> = {
-  "Flow Stage": "rgb(80, 155, 255)", // Blue light
-  "Samsung Stage": "rgb(163, 221, 58)", // Green light
-  "Alternative Stage": "rgb(255, 50, 140)", // Pink light
-  "Perry's Stage": "rgb(155, 85, 245)", // Purple light
-  KidzaPalooza: "rgb(255, 110, 40)", // Orange light
-};
-
-/** Left border accent — non-selected — barely visible */
-const STAGE_DEFAULT_BORDER: Record<string, string> = {
-  "Flow Stage": "rgba(58, 134, 255, 0.20)", // Blue
-  "Samsung Stage": "rgba(138, 201, 38, 0.20)", // Green
-  "Alternative Stage": "rgba(255, 0, 110, 0.15)", // Pink
-  "Perry's Stage": "rgba(131, 56, 236, 0.15)", // Purple
-  KidzaPalooza: "rgba(251, 86, 7, 0.12)", // Orange
-};
-
-// ============================================================
-// Canvas helpers
-// ============================================================
-
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number,
-) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-/** Load an SVG string as an Image ready for drawImage */
-function loadSvgImage(svgString: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Failed to load SVG logo"));
-    };
-    img.src = url;
-  });
-}
-
-/** Resolve the actual font-family string from a Tailwind class name */
-function resolveFont(className: string): string {
-  const el = document.createElement("span");
-  el.className = className;
-  el.style.position = "absolute";
-  el.style.visibility = "hidden";
-  document.body.appendChild(el);
-  const font = getComputedStyle(el).fontFamily;
-  document.body.removeChild(el);
-  return font;
-}
-
-/** Truncate text to fit within maxWidth, adding "..." if needed */
-function truncateText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-): string {
-  if (ctx.measureText(text).width <= maxWidth) return text;
-  let truncated = text;
-  while (
-    truncated.length > 1 &&
-    ctx.measureText(truncated + "\u2026").width > maxWidth
-  ) {
-    truncated = truncated.slice(0, -1);
-  }
-  return truncated + "\u2026";
-}
-
-/**
- * Format minutes as time label for the grid axis.
- * Full hours → "XX HS" | Half hours → "XX:30"
- */
-function formatTimeLabel(totalMinutes: number): string {
-  const normalized = totalMinutes % (24 * 60);
-  const h = Math.floor(normalized / 60);
-  const m = normalized % 60;
-  if (m === 0) {
-    return `${h.toString().padStart(2, "0")} HS`;
-  }
-  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
-}
-
-/**
- * Draw text centered at (x, centerY) with automatic word-wrapping.
- * Used for multi-line stage headers (e.g. "ALTERNATIVE STAGE").
- */
-function drawMultilineText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  centerY: number,
-  maxWidth: number,
-  lineHeight: number,
-) {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let currentLine = words[0];
-
-  for (let i = 1; i < words.length; i++) {
-    const testLine = currentLine + " " + words[i];
-    if (ctx.measureText(testLine).width <= maxWidth) {
-      currentLine = testLine;
-    } else {
-      lines.push(currentLine);
-      currentLine = words[i];
-    }
-  }
-  lines.push(currentLine);
-
-  const totalHeight = lines.length * lineHeight;
-  const startY = centerY - totalHeight / 2 + lineHeight / 2;
-
-  for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i], x, startY + i * lineHeight);
-  }
-}
+const CARD_GAP = 3;
+const CARD_BORDER_LEFT = 3;
 
 // ============================================================
 // Main generation function
@@ -287,9 +69,8 @@ export async function generateGrillaImage(
   ctx.fillRect(0, 0, IMG_WIDTH, IMG_HEIGHT);
 
   // ── 2. Layout — center content block within lock screen safe zone ──
-  // Block = header row (logo + day) + gap + grid, centered vertically
   const GAP_AFTER_HEADER = 30;
-  const MAX_GRID_HEIGHT = 1530; // preserve previous grid height
+  const MAX_GRID_HEIGHT = 1530;
 
   const safeZoneHeight = IMG_HEIGHT - SAFE_TOP - SAFE_BOTTOM;
   const gridHeight = Math.min(
@@ -315,26 +96,10 @@ export async function generateGrillaImage(
   const contentHeight = gridHeight - STAGE_HEADER_HEIGHT;
   const pxPerMin = contentHeight / day.bounds.totalMinutes;
 
-  // ── 3. Logo (left-aligned in header row) ──
-  const logoSvg = createLogoSvg(colors.logoMain, colors.logoDetail);
-  const logoImg = await loadSvgImage(logoSvg);
-  const logoX = PADDING_X;
-  const logoY = headerY + (HEADER_ROW_HEIGHT - LOGO_HEIGHT) / 2;
-  ctx.drawImage(logoImg, logoX, logoY, LOGO_WIDTH, LOGO_HEIGHT);
+  // ── 3. Header (Logo + Day label) ──
+  await drawHeader(ctx, headerY, day.label, colors, displayFont);
 
-  // ── 4. Day label (right-aligned in header row) ──
-  const dayAccent = DAY_ACCENT_COLORS[day.label] ?? "#3A86FF";
-  ctx.fillStyle = dayAccent;
-  ctx.font = `400 ${DAY_LABEL_FONT_SIZE}px ${displayFont}`;
-  ctx.textAlign = "right";
-  ctx.textBaseline = "middle";
-  ctx.fillText(
-    day.label.toUpperCase(),
-    IMG_WIDTH - PADDING_X,
-    headerY + HEADER_ROW_HEIGHT / 2,
-  );
-
-  // ── 5. Grid background ──
+  // ── 4. Grid background ──
   ctx.fillStyle = colors.gridBg;
   roundRect(ctx, gridLeft, gridTop, gridWidth, gridHeight, 15);
   ctx.fill();
@@ -345,7 +110,7 @@ export async function generateGrillaImage(
   roundRect(ctx, gridLeft, gridTop, gridWidth, gridHeight, 15);
   ctx.stroke();
 
-  // ── 6. Stage headers ──
+  // ── 5. Stage headers ──
   // Header background
   ctx.save();
   roundRect(ctx, gridLeft, gridTop, gridWidth, STAGE_HEADER_HEIGHT, 15);
@@ -364,7 +129,7 @@ export async function generateGrillaImage(
   ctx.lineTo(gridRight, gridTop + STAGE_HEADER_HEIGHT);
   ctx.stroke();
 
-  // Stage names — scaled from 20→24px display font with word-wrap
+  // Stage names
   ctx.fillStyle = colors.gridHeaderForeground;
   ctx.font = `400 24px ${displayFont}`;
   ctx.textAlign = "center";
@@ -387,7 +152,7 @@ export async function generateGrillaImage(
     );
   }
 
-  // ── 7. Horizontal grid lines (every 30 min) ──
+  // ── 6. Horizontal grid lines (every 30 min) ──
   ctx.strokeStyle = colors.gridLine;
   ctx.lineWidth = 1;
   const totalSlots = Math.floor(day.bounds.totalMinutes / 30) + 1;
@@ -401,7 +166,7 @@ export async function generateGrillaImage(
     ctx.stroke();
   }
 
-  // ── 8. Vertical stage separators ──
+  // ── 7. Vertical stage separators ──
   ctx.strokeStyle = colors.gridBorder;
   ctx.lineWidth = 1;
   // Separator between time axis and first column
@@ -418,32 +183,32 @@ export async function generateGrillaImage(
     ctx.stroke();
   }
 
-  // ── 9. Time axis labels — every 60 min, "XX HS" format ──
+  // ── 8. Time axis labels — every 60 min, "XX HS" format ──
   ctx.fillStyle = colors.gridTime;
   ctx.font = `700 25px ${sansFont}`;
   ctx.textAlign = "right";
   ctx.textBaseline = "top";
 
-  const TIME_LABEL_HEIGHT = 25; // approximate height of a label at 25px font
+  const TIME_LABEL_HEIGHT = 25;
   for (let i = 0; i < totalSlots; i++) {
     const offset = i * 30;
     const minutes = day.bounds.startMin + offset;
     const normalized = minutes % (24 * 60);
     const m = normalized % 60;
 
-    // Only full hours — skip half-hour slots entirely
+    // Only full hours
     if (m !== 0) continue;
 
     const y = contentTop + offset * pxPerMin + 3;
 
-    // Skip labels that would overflow past the grid bottom
+    // Skip labels that would overflow
     if (y + TIME_LABEL_HEIGHT > gridBottom) continue;
 
     const label = formatTimeLabel(minutes);
     ctx.fillText(label, columnsLeft - 10, y);
   }
 
-  // ── 10. Artist cards ──
+  // ── 9. Artist cards ──
   // Sort: draw non-selected first, then selected on top
   const sortedArtists = [...day.artists].sort((a, b) => {
     const aSelected = selectedArtists.has(a.id) ? 1 : 0;
@@ -530,7 +295,6 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
     : (STAGE_DEFAULT_BG[artist.stageName] ?? "rgba(255,255,255,0.08)");
 
   ctx.save();
-  // Clip to card bounds — rounded-sm scaled to 3px for higher resolution
   roundRect(ctx, x, y, w, h, 3);
   ctx.clip();
 
@@ -538,7 +302,7 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
   ctx.fillStyle = bgColor;
   ctx.fillRect(x, y, w, h);
 
-  // Left accent border — border-l-2 (matches screen)
+  // Left accent border
   const borderColor = isSelected
     ? (STAGE_SELECTED_BORDER[artist.stageName] ?? "rgba(255,255,255,0.50)")
     : (STAGE_DEFAULT_BORDER[artist.stageName] ?? "rgba(255,255,255,0.15)");
@@ -546,18 +310,14 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
   ctx.fillRect(x, y, CARD_BORDER_LEFT, h);
 
   // ── Text rendering ──
-  // Horizontal padding: px-3 = 12px on screen, adapted for canvas
   const textX = x + CARD_BORDER_LEFT + (w - CARD_BORDER_LEFT) / 2;
   const maxTextW = w - CARD_BORDER_LEFT - 16;
 
-  // Font sizes scaled ~1.2x from screen:
-  // 24→29px (≥45min), 18→22px (≥30min), 14→17px (shorter)
   let nameFontSize = durationMin >= 45 ? 29 : durationMin >= 30 ? 22 : 17;
-  // 16→19px for subtitle and time
   const subtitleFontSize = 19;
   const timeFontSize = 19;
 
-  // Auto-shrink font for long names without spaces (e.g. "GUITARRICADELAFUENTE")
+  // Auto-shrink font for long names without spaces
   const nameUpper = artist.name.toUpperCase();
   ctx.font = `400 ${nameFontSize}px ${displayFont}`;
   const nameWords = nameUpper.split(" ");
@@ -587,7 +347,7 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
 
   const textStartY = y + (h - textBlockHeight) / 2 + nameFontSize / 2;
 
-  // Artist name — word-wrap to 2 lines max (matching screen line-clamp-2)
+  // Artist name — word-wrap to 2 lines max
   drawMultilineText(
     ctx,
     truncateText(ctx, nameUpper, maxTextW * 2),
@@ -597,7 +357,7 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
     nameFontSize + 2,
   );
 
-  // Subtitle — screen: text-md leading-tight
+  // Subtitle
   let nextTextY = textStartY + nameFontSize / 2;
   if (hasSubtitle && artist.subtitle) {
     nextTextY += subtitleFontSize + 2;
@@ -609,7 +369,7 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
     ctx.fillText(subText, textX, nextTextY);
   }
 
-  // Time range — screen: text-md mt-0.5 leading-tight tabular-nums
+  // Time range
   if (hasTime) {
     nextTextY += timeFontSize + 6;
     ctx.fillStyle = isSelected
@@ -624,43 +384,4 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
   }
 
   ctx.restore();
-}
-
-// ============================================================
-// Download / Share helper
-// ============================================================
-
-export async function downloadOrShareImage(
-  blob: Blob,
-  dayLabel: string,
-): Promise<void> {
-  const fileName = `migrilla-${dayLabel
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")}.jpg`;
-
-  // Try native share on mobile
-  if (navigator.share && navigator.canShare) {
-    const file = new File([blob], fileName, { type: "image/jpeg" });
-    const shareData = { files: [file] };
-
-    if (navigator.canShare(shareData)) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch {
-        // User cancelled share or share failed — fall through to download
-      }
-    }
-  }
-
-  // Desktop fallback: direct download
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }

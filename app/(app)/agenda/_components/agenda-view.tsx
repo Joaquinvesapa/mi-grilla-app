@@ -5,6 +5,7 @@ import type { GridDay, GridArtist } from "@/lib/schedule-types";
 import { DayTabs } from "../../grilla/_components/day-tabs";
 import { AgendaCard } from "./agenda-card";
 import { AgendaEmpty } from "./agenda-empty";
+import { DownloadAgendaButton } from "./download-agenda-button";
 import { removeFromAgenda } from "../actions";
 
 interface AgendaViewProps {
@@ -194,13 +195,14 @@ export function AgendaView({
         )}
       </div>
 
-      {/* ── Day tabs ── */}
-      <div className="shrink-0">
+      {/* ── Day tabs + download ── */}
+      <div className="flex shrink-0 items-center gap-2">
         <DayTabs
           days={days.map((d) => d.label)}
           activeDay={activeDayIndex}
           onDayChange={setActiveDayIndex}
         />
+        <DownloadAgendaButton days={days} selectedArtists={attendance} />
       </div>
 
       {/* ── Timeline / Card list ── */}
