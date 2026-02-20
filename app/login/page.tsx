@@ -109,7 +109,7 @@ function UsernameStep({
             name="username"
             type="text"
             defaultValue={initialUsername}
-            placeholder="tu_usuario\u2026"
+            placeholder="tu_usuario"
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
@@ -151,9 +151,7 @@ function PinStep({
             @{username}
           </p>
           <p className="text-sm text-muted">
-            {isNewUser
-              ? "Elegí un PIN para tu nueva cuenta"
-              : "Ingresá tu PIN"}
+            {isNewUser ? "Elegí un PIN para tu nueva cuenta" : "Ingresá tu PIN"}
           </p>
         </div>
 
@@ -223,10 +221,13 @@ export default function LoginPage() {
     setStep("username");
   }
 
-  const animClass = direction === "forward" ? "animate-slide-in-right" : "animate-slide-in-left";
+  const animClass =
+    direction === "forward"
+      ? "animate-slide-in-right"
+      : "animate-slide-in-left";
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6 font-sans">
+    <main className="relative flex min-h-dvh flex-col items-center justify-center gap-8 px-6 font-sans">
       {/* Brand */}
       <div className="flex flex-col items-center gap-3 text-center">
         <span className="text-6xl" role="img" aria-label="Guitarra">
@@ -282,6 +283,19 @@ export default function LoginPage() {
       {/* Legal */}
       <p className="max-w-xs text-center text-xs text-foreground/40">
         Al continuar, aceptás los términos y condiciones de MiGrilla.
+      </p>
+
+      {/* Made by */}
+      <p className="absolute bottom-4 text-center text-xs text-foreground/30">
+        Hecho con <span className="text-red-500">♥</span> por{" "}
+        <a
+          href="https://github.com/Joaquinvesapa"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-foreground/40 underline underline-offset-2 hover:text-foreground/70 transition-colors duration-150"
+        >
+          JoaquinVesapa
+        </a>
       </p>
     </main>
   );

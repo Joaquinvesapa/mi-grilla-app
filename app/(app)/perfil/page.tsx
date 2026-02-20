@@ -75,14 +75,8 @@ export default async function PerfilPage() {
       {/* Info */}
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="text-3xl font-display uppercase tracking-tight text-foreground">
-          {name}
-        </h1>
-        <p
-          className="text-base font-sans"
-          style={{ color: "var(--color-muted)" }}
-        >
           @{username}
-        </p>
+        </h1>
       </div>
 
       {/* Sign out */}

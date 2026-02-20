@@ -31,23 +31,18 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Redirigir raíz → /home
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/home", request.url));
-  }
-
   // Rutas públicas que no requieren sesión
-  const publicPaths = ["/login", "/home", "/grilla", "/agenda", "/perfil"];
-  const isPublic = publicPaths.some((p) => pathname === p || pathname.startsWith("/auth"));
+  const isPublic =
+    pathname === "/login" || pathname.startsWith("/auth");
 
-  // Si no hay sesión y trata de ir a rutas protegidas → login
+  // Si no hay sesión → login (siempre, incluso en "/")
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Si ya hay sesión y trata de ir al login → home
-  if (user && pathname === "/login") {
-    return NextResponse.redirect(new URL("/home", request.url));
+  // Si ya hay sesión y trata de ir al login o a la raíz → grilla
+  if (user && (pathname === "/login" || pathname === "/")) {
+    return NextResponse.redirect(new URL("/grilla", request.url));
   }
 
   return supabaseResponse;

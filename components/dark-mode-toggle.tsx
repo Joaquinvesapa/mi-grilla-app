@@ -8,17 +8,13 @@ export function DarkModeToggle() {
   // Read initial preference from localStorage or system
   useEffect(() => {
     const stored = localStorage.getItem("theme");
-    if (stored === "dark") {
-      setIsDark(true);
-      document.documentElement.classList.add("dark");
-    } else if (stored === "light") {
+    if (stored === "light") {
       setIsDark(false);
       document.documentElement.classList.remove("dark");
     } else {
-      // No stored preference — follow system
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setIsDark(prefersDark);
-      document.documentElement.classList.toggle("dark", prefersDark);
+      // Default: dark (stored === "dark" or no preference)
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
     }
   }, []);
 
