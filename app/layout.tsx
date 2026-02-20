@@ -19,6 +19,9 @@ const hostGrotesk = Host_Grotesk({
 export const metadata: Metadata = {
   title: "MiGrilla",
   description: "Armá tu agenda del festival y coordiná con tus amigos.",
+  icons: {
+    icon: "/guitar_svg.svg",
+  },
 };
 
 export default function RootLayout({
