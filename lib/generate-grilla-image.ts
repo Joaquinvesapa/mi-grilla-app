@@ -52,82 +52,82 @@ interface ImageColors {
 }
 
 const LIGHT_COLORS: ImageColors = {
-  background: "#fee4c7",
-  foreground: "#1a1a1a",
-  gridBg: "#faf7f4",
+  background: "#fdf8ff",
+  foreground: "#1a1a2e",
+  gridBg: "#f8f4ff",
   gridCell: "#ffffff",
   gridCellForeground: "#000000",
   gridLine: "rgba(0, 0, 0, 0.08)",
   gridBorder: "rgba(0, 0, 0, 0.10)",
   gridTime: "rgba(0, 0, 0, 0.50)",
-  gridText: "#2a2a2a",
+  gridText: "#1a1a2e",
   gridTextMuted: "rgba(0, 0, 0, 0.45)",
   gridTextDimmed: "rgba(0, 0, 0, 0.28)",
-  gridHeaderBg: "#f2ede8",
-  gridHeaderForeground: "#000000",
-  logoMain: "#1a1a1a",
-  logoDetail: "#fee4c7",
+  gridHeaderBg: "#f0eaf8",
+  gridHeaderForeground: "#1a1a2e",
+  logoMain: "#1a1a2e",
+  logoDetail: "#fdf8ff",
 };
 
 const DARK_COLORS: ImageColors = {
-  background: "#0f0f0f",
-  foreground: "#f0ece8",
+  background: "#0a0a14",
+  foreground: "#eee8f5",
   gridBg: "#0d0d1a",
-  gridCell: "#1c1c1c",
-  gridCellForeground: "#f0ece8",
+  gridCell: "#16162a",
+  gridCellForeground: "#eee8f5",
   gridLine: "rgba(255, 255, 255, 0.08)",
   gridBorder: "rgba(255, 255, 255, 0.10)",
   gridTime: "rgba(255, 255, 255, 0.65)",
   gridText: "#ffffff",
   gridTextMuted: "rgba(255, 255, 255, 0.55)",
   gridTextDimmed: "rgba(255, 255, 255, 0.28)",
-  gridHeaderBg: "#141414",
-  gridHeaderForeground: "#f0ece8",
-  logoMain: "#f0ece8",
-  logoDetail: "#0f0f0f",
+  gridHeaderBg: "#12122a",
+  gridHeaderForeground: "#eee8f5",
+  logoMain: "#eee8f5",
+  logoDetail: "#0a0a14",
 };
 
 /** Accent color per day label */
 const DAY_ACCENT_COLORS: Record<string, string> = {
-  Viernes: "#0cbba5",
-  "S\u00e1bado": "#ddc98a",
-  Domingo: "#e85555",
+  Viernes: "#3A86FF",
+  "S\u00e1bado": "#8338EC",
+  Domingo: "#FF006E",
 };
 
 /** Solid stage background for SELECTED artist cards */
 const STAGE_SELECTED_BG: Record<string, string> = {
-  "Flow Stage": "rgb(7, 184, 156)",
-  "Samsung Stage": "rgb(221, 201, 138)",
-  "Alternative Stage": "rgb(232, 85, 85)",
-  "Perry's Stage": "rgb(240, 45, 125)",
-  KidzaPalooza: "rgb(212, 236, 42)",
+  "Flow Stage": "rgb(58, 134, 255)",       // Blue
+  "Samsung Stage": "rgb(245, 180, 0)",     // Amber
+  "Alternative Stage": "rgb(255, 0, 110)", // Pink
+  "Perry's Stage": "rgb(131, 56, 236)",    // Purple
+  KidzaPalooza: "rgb(251, 86, 7)",         // Orange
 };
 
 /** Semi-transparent stage background for NON-selected artist cards — very subtle */
 const STAGE_DEFAULT_BG: Record<string, string> = {
-  "Flow Stage": "rgba(7, 184, 156, 0.07)",
-  "Samsung Stage": "rgba(221, 201, 138, 0.07)",
-  "Alternative Stage": "rgba(232, 85, 85, 0.05)",
-  "Perry's Stage": "rgba(240, 45, 125, 0.05)",
-  KidzaPalooza: "rgba(212, 236, 42, 0.04)",
+  "Flow Stage": "rgba(58, 134, 255, 0.07)",       // Blue
+  "Samsung Stage": "rgba(245, 180, 0, 0.07)",     // Amber
+  "Alternative Stage": "rgba(255, 0, 110, 0.05)", // Pink
+  "Perry's Stage": "rgba(131, 56, 236, 0.05)",    // Purple
+  KidzaPalooza: "rgba(251, 86, 7, 0.04)",         // Orange
 };
 
 /** Left border accent — selected */
 const STAGE_SELECTED_BORDER: Record<string, string> = {
-  "Flow Stage": "rgb(10, 220, 186)",
-  "Samsung Stage": "rgb(240, 220, 155)",
-  "Alternative Stage": "rgb(245, 105, 105)",
-  "Perry's Stage": "rgb(250, 65, 145)",
-  KidzaPalooza: "rgb(225, 245, 65)",
+  "Flow Stage": "rgb(80, 155, 255)",        // Blue light
+  "Samsung Stage": "rgb(255, 200, 40)",     // Amber light
+  "Alternative Stage": "rgb(255, 50, 140)", // Pink light
+  "Perry's Stage": "rgb(155, 85, 245)",     // Purple light
+  KidzaPalooza: "rgb(255, 110, 40)",        // Orange light
 };
 
 /** Left border accent — non-selected — barely visible */
 const STAGE_DEFAULT_BORDER: Record<string, string> = {
-  "Flow Stage": "rgba(7, 184, 156, 0.20)",
-  "Samsung Stage": "rgba(221, 201, 138, 0.20)",
-  "Alternative Stage": "rgba(232, 85, 85, 0.15)",
-  "Perry's Stage": "rgba(240, 45, 125, 0.15)",
-  KidzaPalooza: "rgba(212, 236, 42, 0.12)",
+  "Flow Stage": "rgba(58, 134, 255, 0.20)",       // Blue
+  "Samsung Stage": "rgba(245, 180, 0, 0.20)",     // Amber
+  "Alternative Stage": "rgba(255, 0, 110, 0.15)", // Pink
+  "Perry's Stage": "rgba(131, 56, 236, 0.15)",    // Purple
+  KidzaPalooza: "rgba(251, 86, 7, 0.12)",         // Orange
 };
 
 // ============================================================
@@ -323,7 +323,7 @@ export async function generateGrillaImage(
   ctx.drawImage(logoImg, logoX, logoY, LOGO_WIDTH, LOGO_HEIGHT);
 
   // ── 4. Day label (right-aligned in header row) ──
-  const dayAccent = DAY_ACCENT_COLORS[day.label] ?? "#07b89c";
+  const dayAccent = DAY_ACCENT_COLORS[day.label] ?? "#3A86FF";
   ctx.fillStyle = dayAccent;
   ctx.font = `400 ${DAY_LABEL_FONT_SIZE}px ${displayFont}`;
   ctx.textAlign = "right";
