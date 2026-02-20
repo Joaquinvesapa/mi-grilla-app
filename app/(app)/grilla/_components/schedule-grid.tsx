@@ -32,6 +32,8 @@ export function ScheduleGrid({
   );
   // Snapshot of what's saved on the server (to compute isDirty)
   const savedArtistsRef = useRef<Set<string>>(new Set(initialAttendance));
+  // Used to force a re-render after a successful save so isDirty recomputes
+  const [, forceUpdate] = useState(0);
 
   const stageCount = day.stages.length;
   const totalRows = day.bounds.totalMinutes;
@@ -68,8 +70,9 @@ export function ScheduleGrid({
   }> {
     const result = await saveAttendance(Array.from(selectedArtists));
     if (result.success) {
-      // Update the "saved" snapshot
+      // Update the "saved" snapshot and force re-render so isDirty recomputes
       savedArtistsRef.current = new Set(selectedArtists);
+      forceUpdate((n) => n + 1);
     }
     return result;
   }
