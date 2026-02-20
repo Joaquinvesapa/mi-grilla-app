@@ -7,6 +7,7 @@ import { ArtistCard } from "./artist-card";
 import { TimeAxis } from "./time-axis";
 import { DayTabs } from "./day-tabs";
 import { SaveAttendanceButton } from "./save-attendance-button";
+import { DownloadGrillaButton } from "./download-grilla-button";
 import { saveAttendance } from "../actions";
 
 interface ScheduleGridProps {
@@ -73,19 +74,22 @@ export function ScheduleGrid({
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
-      {/* Day selector */}
-      <DayTabs
-        days={days.map((d) => d.label)}
-        activeDay={activeDayIndex}
-        onDayChange={setActiveDayIndex}
-      />
+      {/* Day selector + download */}
+      <div className="flex items-center gap-2">
+        <DayTabs
+          days={days.map((d) => d.label)}
+          activeDay={activeDayIndex}
+          onDayChange={setActiveDayIndex}
+        />
+        <DownloadGrillaButton days={days} selectedArtists={selectedArtists} />
+      </div>
 
       {/* Scrollable grid area */}
       <div className="mb-3 min-h-0 flex-1 touch-manipulation overflow-x-auto overflow-y-auto overscroll-contain rounded-lg border border-grid-border">
         <div
           className="relative grid min-w-max"
           style={{
-            gridTemplateColumns: `56px repeat(${stageCount}, minmax(120px, 1fr))`,
+            gridTemplateColumns: `56px repeat(${stageCount}, minmax(100px, 1fr))`,
             gridTemplateRows: `48px repeat(${totalRows}, ${PX_PER_MINUTE}px)`,
             height: gridHeight,
             backgroundColor: "var(--color-grid-bg)",
@@ -93,7 +97,7 @@ export function ScheduleGrid({
         >
           {/* ── Header row: stage names ── */}
           <div
-            className="sticky left-0 top-0 z-30 flex items-center justify-center border-b border-r border-grid-border text-[10px] font-semibold uppercase tracking-widest"
+            className="sticky left-0 top-0 z-30 flex items-center justify-center border-b border-r border-grid-border text-xs font-semibold uppercase tracking-widest"
             style={{
               gridColumn: 1,
               gridRow: 1,
@@ -107,7 +111,7 @@ export function ScheduleGrid({
           {day.stages.map((stage, i) => (
             <div
               key={stage.name}
-              className="sticky top-0 z-20 flex items-center justify-center border-b border-grid-border px-2 text-center font-display text-xs uppercase tracking-wider text-grid-text"
+              className="sticky top-0 z-20 flex items-center justify-center border-b border-grid-border px-2 text-center font-display text-xl uppercase tracking-wider text-grid-text"
               style={{
                 gridColumn: i + 2,
                 gridRow: 1,
