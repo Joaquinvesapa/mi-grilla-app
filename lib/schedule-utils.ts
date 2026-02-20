@@ -188,3 +188,26 @@ export const STAGE_BORDER_COLORS: Record<string, string> = {
   "Perry's Stage": "rgba(240, 45, 125, 0.40)",
   KidzaPalooza: "rgba(212, 236, 42, 0.35)",
 };
+
+/**
+ * Solid backgrounds for selected (attending) artist cards.
+ * No transparency — fully opaque to stand out from the grid.
+ */
+export const STAGE_SELECTED_COLORS: Record<string, string> = {
+  "Flow Stage": "rgb(7, 184, 156)",
+  "Samsung Stage": "rgb(221, 201, 138)",
+  "Alternative Stage": "rgb(232, 85, 85)",
+  "Perry's Stage": "rgb(240, 45, 125)",
+  KidzaPalooza: "rgb(212, 236, 42)",
+};
+
+/**
+ * Solid border for selected artist cards.
+ */
+export const STAGE_SELECTED_BORDER_COLORS: Record<string, string> = {
+  "Flow Stage": "rgb(10, 220, 186)",
+  "Samsung Stage": "rgb(240, 220, 155)",
+  "Alternative Stage": "rgb(245, 105, 105)",
+  "Perry's Stage": "rgb(250, 65, 145)",
+  KidzaPalooza: "rgb(225, 245, 65)",
+};

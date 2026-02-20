@@ -15,7 +15,7 @@
   }
 }
 
-@theme inline {
+@theme {
   /* ============================================================
    * BASE
    * Colores base de la app (fondo general, texto principal)
@@ -56,11 +56,14 @@
    * ============================================================ */
   --color-grid-cell: #ffffff; /* Fondo de cada bloque de artista */
   --color-grid-cell-foreground: #000000; /* Texto dentro del bloque */
-  --color-grid-header: #ffffff; /* Fondo del header de escenario */
+  --color-grid-header: #f2ede8; /* Fondo del header de escenario */
   --color-grid-header-foreground: #000000; /* Texto del header de escenario */
-  --color-grid-bg: #1a1a2e; /* Fondo del area de la grilla */
-  --color-grid-line: rgba(255, 255, 255, 0.10); /* Líneas de la grilla */
-  --color-grid-time: rgba(255, 255, 255, 0.70); /* Texto de horarios */
+  --color-grid-bg: #faf7f4; /* Fondo del area de la grilla — off-white cálido */
+  --color-grid-line: rgba(0, 0, 0, 0.06); /* Líneas sutiles oscuras sobre fondo claro */
+  --color-grid-time: rgba(0, 0, 0, 0.50); /* Texto de horarios legible */
+  --color-grid-border: rgba(0, 0, 0, 0.08); /* Bordes internos de la grilla */
+  --color-grid-text: #2a2a2a; /* Texto principal dentro de la grilla */
+  --color-grid-text-muted: rgba(0, 0, 0, 0.50); /* Texto secundario en la grilla */
 
   /* ============================================================
    * NAV / SURFACE
@@ -71,8 +74,12 @@
   --color-border: #e5d5c5; /* Bordes sutiles */
   --color-muted: #a09080; /* Texto secundario / inactivo */
 
+}
+
+@theme inline {
   /* ============================================================
    * TIPOGRAFÍA
+   * @theme inline porque referencian variables de Next.js (runtime)
    * --font-display → Anton: headings, artistas, títulos, ALL CAPS
    * --font-sans    → Host Grotesk: cuerpo, UI, horarios, subtítulos
    * ============================================================ */
@@ -101,6 +108,9 @@
   --color-grid-bg: #0d0d1a;
   --color-grid-line: rgba(255, 255, 255, 0.10);
   --color-grid-time: rgba(255, 255, 255, 0.65);
+  --color-grid-border: rgba(255, 255, 255, 0.10);
+  --color-grid-text: #ffffff;
+  --color-grid-text-muted: rgba(255, 255, 255, 0.65);
 }
 
 body {

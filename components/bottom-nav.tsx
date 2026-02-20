@@ -8,12 +8,14 @@ type NavItem = {
   href: string;
   label: string;
   icon: React.ReactNode;
+  disabled?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
   {
     href: "/home",
     label: "Home",
+    disabled: true,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -119,7 +121,7 @@ export function BottomNav() {
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      {NAV_ITEMS.map((item) => {
+      {NAV_ITEMS.filter((item) => !item.disabled).map((item) => {
         const isActive = pathname === item.href;
 
         return (

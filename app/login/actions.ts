@@ -78,7 +78,8 @@ export async function authenticate(
 
   // ── Server-side validation (safety net) ──
   const usernameErr = validateUsername(username);
-  if (usernameErr) return { error: "Usuario inválido. Volvé al paso anterior." };
+  if (usernameErr)
+    return { error: "Usuario inválido. Volvé al paso anterior." };
 
   const pinErr = validatePin(pin);
   if (pinErr) return { fieldErrors: { pin: pinErr } };
@@ -136,7 +137,7 @@ export async function authenticate(
     }
   }
 
-  redirect("/home");
+  redirect("/grilla");
 }
 
 // ── Google OAuth ───────────────────────────────────────────

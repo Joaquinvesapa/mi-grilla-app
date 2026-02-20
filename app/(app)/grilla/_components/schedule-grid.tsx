@@ -1,35 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { GridDay } from "@/lib/schedule-types";
 import { PX_PER_MINUTE } from "@/lib/schedule-utils";
 import { ArtistCard } from "./artist-card";
 import { TimeAxis } from "./time-axis";
 import { DayTabs } from "./day-tabs";
+import { SaveAttendanceButton } from "./save-attendance-button";
+import { saveAttendance } from "../actions";
 
 interface ScheduleGridProps {
   days: GridDay[];
+  initialAttendance?: string[];
+  isAuthenticated?: boolean;
 }
 
-export function ScheduleGrid({ days }: ScheduleGridProps) {
+export function ScheduleGrid({
+  days,
+  initialAttendance = [],
+  isAuthenticated = false,
+}: ScheduleGridProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const day = days[activeDayIndex];
+
+  // --- Attendance state ---
+  const [selectedArtists, setSelectedArtists] = useState<Set<string>>(
+    () => new Set(initialAttendance),
+  );
+  // Snapshot of what's saved on the server (to compute isDirty)
+  const savedArtistsRef = useRef<Set<string>>(new Set(initialAttendance));
 
   const stageCount = day.stages.length;
   const totalRows = day.bounds.totalMinutes;
 
-  /**
-   * Grid layout:
-   * - Column 1: time axis (56px fixed)
-   * - Columns 2..N+1: one per stage (equal width, min 120px)
-   * - Rows: 1 row = 1 minute of real time. Header is row 1.
-   *
-   * Total grid height = totalMinutes * PX_PER_MINUTE + header
-   */
   const gridHeight = totalRows * PX_PER_MINUTE + 48; // 48px for header row
 
+  // --- Dirty check ---
+  function computeIsDirty(): boolean {
+    const saved = savedArtistsRef.current;
+    if (selectedArtists.size !== saved.size) return true;
+    for (const id of selectedArtists) {
+      if (!saved.has(id)) return true;
+    }
+    return false;
+  }
+
+  const isDirty = computeIsDirty();
+
+  function handleToggle(artistId: string) {
+    setSelectedArtists((prev) => {
+      const next = new Set(prev);
+      if (next.has(artistId)) {
+        next.delete(artistId);
+      } else {
+        next.add(artistId);
+      }
+      return next;
+    });
+  }
+
+  async function handleSave(): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    const result = await saveAttendance(Array.from(selectedArtists));
+    if (result.success) {
+      // Update the "saved" snapshot
+      savedArtistsRef.current = new Set(selectedArtists);
+    }
+    return result;
+  }
+
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
       {/* Day selector */}
       <DayTabs
         days={days.map((d) => d.label)}
@@ -38,7 +81,7 @@ export function ScheduleGrid({ days }: ScheduleGridProps) {
       />
 
       {/* Scrollable grid area */}
-      <div className="overflow-x-auto overflow-y-auto overscroll-contain touch-manipulation rounded-lg border border-white/5">
+      <div className="mb-3 min-h-0 flex-1 touch-manipulation overflow-x-auto overflow-y-auto overscroll-contain rounded-lg border border-grid-border">
         <div
           className="relative grid min-w-max"
           style={{
@@ -50,7 +93,7 @@ export function ScheduleGrid({ days }: ScheduleGridProps) {
         >
           {/* ── Header row: stage names ── */}
           <div
-            className="sticky top-0 z-20 flex items-center justify-center border-b border-white/10 text-[10px] font-semibold uppercase tracking-widest"
+            className="sticky left-0 top-0 z-30 flex items-center justify-center border-b border-r border-grid-border text-[10px] font-semibold uppercase tracking-widest"
             style={{
               gridColumn: 1,
               gridRow: 1,
@@ -64,7 +107,7 @@ export function ScheduleGrid({ days }: ScheduleGridProps) {
           {day.stages.map((stage, i) => (
             <div
               key={stage.name}
-              className="sticky top-0 z-20 flex items-center justify-center border-b border-white/10 px-2 text-center font-display text-xs uppercase tracking-wider text-white"
+              className="sticky top-0 z-20 flex items-center justify-center border-b border-grid-border px-2 text-center font-display text-xs uppercase tracking-wider text-grid-text"
               style={{
                 gridColumn: i + 2,
                 gridRow: 1,
@@ -102,10 +145,22 @@ export function ScheduleGrid({ days }: ScheduleGridProps) {
               artist={artist}
               bounds={day.bounds}
               totalStages={stageCount}
+              isSelected={selectedArtists.has(artist.id)}
+              isSelectable={isAuthenticated}
+              onToggle={handleToggle}
             />
           ))}
         </div>
       </div>
+
+      {/* Floating save button — only for authenticated users with unsaved changes */}
+      {isAuthenticated && (
+        <SaveAttendanceButton
+          isDirty={isDirty}
+          selectedCount={selectedArtists.size}
+          onSave={handleSave}
+        />
+      )}
     </div>
   );
 }

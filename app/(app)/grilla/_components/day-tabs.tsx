@@ -38,7 +38,7 @@ export function DayTabs({ days, activeDay, onDayChange }: DayTabsProps) {
               "rounded-md px-4 py-2 font-display text-sm uppercase tracking-wider transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
               isActive
                 ? `${accentBg} text-white shadow-sm`
-                : `${accentText} hover:bg-white/10`
+                : `${accentText} hover:bg-foreground/5`
             )}
           >
             {day}
