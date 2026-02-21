@@ -36,6 +36,13 @@ const FOOTER_HEIGHT = 50;
 // Helpers
 // ============================================================
 
+/** Format social names — compact, for right-side display inside cards */
+function formatSocialTextCompact(names: string[]): string {
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} y ${names[1]}`;
+  return `${names[0]} y ${names.length - 1} más`;
+}
+
 /** Group artists by start time, preserving chronological order */
 function groupByStartTime(
   artists: GridArtist[],
@@ -86,12 +93,14 @@ function calculateContentHeight(
 export interface GenerateAgendaImageOptions {
   day: GridDay;
   selectedArtists: Set<string>;
+  /** Map of artistId → usernames of social circle attending */
+  socialOverlay?: Record<string, string[]>;
 }
 
 export async function generateAgendaImage(
   options: GenerateAgendaImageOptions,
 ): Promise<Blob> {
-  const { day, selectedArtists } = options;
+  const { day, selectedArtists, socialOverlay } = options;
 
   // Get attending artists for this day, sorted chronologically
   const attending = day.artists
@@ -207,6 +216,7 @@ export async function generateAgendaImage(
         isDark,
         displayFont,
         sansFont,
+        socialNames: socialOverlay?.[artists[a].id] ?? [],
       });
 
       cursorY += cardHeight;
@@ -256,14 +266,25 @@ interface DrawAgendaCardOptions {
   isDark: boolean;
   displayFont: string;
   sansFont: string;
+  socialNames: string[];
 }
 
 function drawAgendaCard(
   ctx: CanvasRenderingContext2D,
   opts: DrawAgendaCardOptions,
 ) {
-  const { artist, x, y, width, height, colors, isDark, displayFont, sansFont } =
-    opts;
+  const {
+    artist,
+    x,
+    y,
+    width,
+    height,
+    colors,
+    isDark,
+    displayFont,
+    sansFont,
+    socialNames,
+  } = opts;
 
   const stageBg = STAGE_SELECTED_BG[artist.stageName] ?? "rgb(58, 134, 255)";
   const borderColor =
@@ -295,15 +316,38 @@ function drawAgendaCard(
 
   // ── Text content ──
   const textLeft = x + CARD_BORDER_LEFT + 24;
+  const textRight = x + width - 24;
   const maxTextWidth = width - CARD_BORDER_LEFT - 48;
 
   // Scale font sizes based on card height
   const isCompact = height < 98;
   const nameFontSize = isCompact ? 34 : 38;
   const infoFontSize = isCompact ? 23 : 26;
+  const socialFontSize = isCompact ? 20 : 22;
   const dotRadius = isCompact ? 6 : 7;
 
-  // Vertical centering: name + info line
+  // ── Measure social right-side content to reserve space ──
+  const hasSocial = socialNames.length > 0;
+  let socialAreaWidth = 0;
+  let socialDisplayText = "";
+
+  if (hasSocial) {
+    socialDisplayText = formatSocialTextCompact(socialNames);
+    ctx.font = `500 ${socialFontSize}px ${sansFont}`;
+    const iconWidth = socialFontSize * 0.9;
+    const rawTextWidth = ctx.measureText(socialDisplayText).width;
+    // Cap social area at 40% of card content width
+    socialAreaWidth = Math.min(
+      iconWidth + 8 + rawTextWidth,
+      maxTextWidth * 0.4,
+    );
+  }
+
+  const nameMaxWidth = hasSocial
+    ? maxTextWidth - socialAreaWidth - 16
+    : maxTextWidth;
+
+  // Vertical centering: name + info line (social goes to the right, no extra height)
   const nameLineHeight = nameFontSize;
   const infoLineHeight = infoFontSize;
   const gapBetween = isCompact ? 8 : 12;
@@ -315,8 +359,36 @@ function drawAgendaCard(
   ctx.font = `400 ${nameFontSize}px ${displayFont}`;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  const nameText = truncateText(ctx, artist.name.toUpperCase(), maxTextWidth);
+  const nameText = truncateText(ctx, artist.name.toUpperCase(), nameMaxWidth);
   ctx.fillText(nameText, textLeft, textBaseY);
+
+  // ── Social indicator: right-aligned on the name line ──
+  if (hasSocial) {
+    const socialCY = textBaseY + nameFontSize * 0.45;
+
+    // People indicator: two offset circles (heads)
+    const iconDotR = socialFontSize * 0.22;
+    const maxSocialTextW = socialAreaWidth - socialFontSize * 0.9 - 8;
+
+    // Social text — right-aligned
+    ctx.fillStyle = colors.gridTextMuted;
+    ctx.font = `500 ${socialFontSize}px ${sansFont}`;
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    const displayText = truncateText(ctx, socialDisplayText, maxSocialTextW);
+    ctx.fillText(displayText, textRight, socialCY);
+
+    // Icon positioned to the left of the text
+    const textW = ctx.measureText(displayText).width;
+    const iconBaseX = textRight - textW - 8;
+    ctx.fillStyle = stageBg;
+    ctx.beginPath();
+    ctx.arc(iconBaseX - iconDotR * 1.2, socialCY + 1, iconDotR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(iconBaseX + iconDotR * 0.4, socialCY - 1, iconDotR * 0.75, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   // Info line: ● Stage  ·  HH:MM – HH:MM
   const infoY = textBaseY + nameLineHeight + gapBetween;

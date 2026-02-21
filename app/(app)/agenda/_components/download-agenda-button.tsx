@@ -5,10 +5,12 @@ import type { GridDay } from "@/lib/schedule-types";
 import { generateAgendaImage } from "@/lib/generate-agenda-image";
 import { downloadOrShareImage } from "@/lib/canvas-utils";
 import { cn } from "@/lib/utils";
+import type { SocialAttendee } from "../../grilla/actions";
 
 interface DownloadAgendaButtonProps {
   days: GridDay[];
   selectedArtists: Set<string>;
+  socialAttendance?: Record<string, SocialAttendee[]>;
 }
 
 const DAY_ACCENT_BG: Record<string, string> = {
@@ -28,6 +30,7 @@ type Status = "idle" | "generating" | "done" | "error";
 export function DownloadAgendaButton({
   days,
   selectedArtists,
+  socialAttendance,
 }: DownloadAgendaButtonProps) {
   const [showPicker, setShowPicker] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
@@ -49,6 +52,16 @@ export function DownloadAgendaButton({
     return day.artists.filter((a) => selectedArtists.has(a.id)).length;
   }
 
+  // Convert SocialAttendee[] → string[] for the image generator
+  const socialOverlay = socialAttendance
+    ? Object.fromEntries(
+        Object.entries(socialAttendance).map(([artistId, attendees]) => [
+          artistId,
+          attendees.map((a) => a.username),
+        ]),
+      )
+    : undefined;
+
   const handleDownload = useCallback(
     async (dayIndex: number) => {
       const day = days[dayIndex];
@@ -56,7 +69,11 @@ export function DownloadAgendaButton({
       setStatus("generating");
 
       try {
-        const blob = await generateAgendaImage({ day, selectedArtists });
+        const blob = await generateAgendaImage({
+          day,
+          selectedArtists,
+          socialOverlay,
+        });
         await downloadOrShareImage(blob, day.label, "mi-agenda");
         setStatus("done");
         setTimeout(() => {
@@ -73,7 +90,7 @@ export function DownloadAgendaButton({
         }, 2000);
       }
     },
-    [days, selectedArtists],
+    [days, selectedArtists, socialOverlay],
   );
 
   // Don't render if no shows selected at all

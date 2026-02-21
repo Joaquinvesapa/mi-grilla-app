@@ -40,12 +40,14 @@ const CARD_BORDER_LEFT = 3;
 export interface GenerateGrillaImageOptions {
   day: GridDay;
   selectedArtists: Set<string>;
+  /** Map of artistId → usernames of social circle attending */
+  socialOverlay?: Record<string, string[]>;
 }
 
 export async function generateGrillaImage(
   options: GenerateGrillaImageOptions,
 ): Promise<Blob> {
-  const { day, selectedArtists } = options;
+  const { day, selectedArtists, socialOverlay } = options;
 
   // Detect dark mode from the current page
   const isDark = document.documentElement.classList.contains("dark");
@@ -230,6 +232,7 @@ export async function generateGrillaImage(
       displayFont,
       sansFont,
       gridBottom,
+      socialNames: socialOverlay?.[artist.id] ?? [],
     });
   }
 
@@ -262,6 +265,7 @@ interface DrawCardOptions {
   displayFont: string;
   sansFont: string;
   gridBottom: number;
+  socialNames: string[];
 }
 
 function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
@@ -381,6 +385,62 @@ function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
       textX,
       nextTextY,
     );
+  }
+
+  // ── Social badge: show how many from your circle are also attending ──
+  const socialCount = opts.socialNames.length;
+  if (socialCount > 0 && h >= 35) {
+    const badgeFontSize = 16;
+    const badgeText = `${socialCount}`;
+    ctx.font = `800 ${badgeFontSize}px ${sansFont}`;
+    const badgeTextW = ctx.measureText(badgeText).width;
+
+    // Two-dot people indicator + count
+    const dotR = 4;
+    const iconW = dotR * 3.5;
+    const padX = 7;
+    const padY = 4;
+    const pillW = padX + iconW + 5 + badgeTextW + padX;
+    const pillH = badgeFontSize + padY * 2;
+    const pillX = x + w - pillW - 5;
+    const pillY = y + 5;
+
+    // Badge background
+    ctx.fillStyle = isSelected
+      ? "rgba(255,255,255,0.28)"
+      : "rgba(255,255,255,0.12)";
+    roundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
+    ctx.fill();
+
+    const iconColor = isSelected ? "#ffffff" : "rgba(255,255,255,0.70)";
+
+    // People indicator: two offset circles (heads)
+    ctx.fillStyle = iconColor;
+    ctx.beginPath();
+    ctx.arc(
+      pillX + padX + dotR,
+      pillY + pillH / 2 + 1,
+      dotR,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(
+      pillX + padX + dotR * 2.2,
+      pillY + pillH / 2 - 1,
+      dotR * 0.75,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+
+    // Count text
+    ctx.fillStyle = isSelected ? "#ffffff" : "rgba(255,255,255,0.70)";
+    ctx.font = `800 ${badgeFontSize}px ${sansFont}`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(badgeText, pillX + padX + iconW + 5, pillY + pillH / 2);
   }
 
   ctx.restore();

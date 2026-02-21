@@ -8,10 +8,13 @@ import { AgendaEmpty } from "./agenda-empty";
 import { DownloadAgendaButton } from "./download-agenda-button";
 import { removeFromAgenda } from "../actions";
 
+import type { SocialAttendee } from "../../grilla/actions";
+
 interface AgendaViewProps {
   days: GridDay[];
   initialAttendance: string[];
   isAuthenticated: boolean;
+  socialAttendance?: Record<string, SocialAttendee[]>;
 }
 
 /* ────────────────────────────────────────────
@@ -83,6 +86,7 @@ export function AgendaView({
   days,
   initialAttendance,
   isAuthenticated,
+  socialAttendance,
 }: AgendaViewProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const [attendance, setAttendance] = useState(
@@ -202,7 +206,11 @@ export function AgendaView({
           activeDay={activeDayIndex}
           onDayChange={setActiveDayIndex}
         />
-        <DownloadAgendaButton days={days} selectedArtists={attendance} />
+        <DownloadAgendaButton
+          days={days}
+          selectedArtists={attendance}
+          socialAttendance={socialAttendance}
+        />
       </div>
 
       {/* ── Timeline / Card list ── */}

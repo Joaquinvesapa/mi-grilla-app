@@ -86,7 +86,11 @@ export function ScheduleGrid({
           activeDay={activeDayIndex}
           onDayChange={setActiveDayIndex}
         />
-        <DownloadGrillaButton days={days} selectedArtists={selectedArtists} />
+        <DownloadGrillaButton
+          days={days}
+          selectedArtists={selectedArtists}
+          socialAttendance={socialAttendance}
+        />
       </div>
 
       {/* Scrollable grid area */}

@@ -7,10 +7,12 @@ import {
   downloadOrShareImage,
 } from "@/lib/generate-grilla-image";
 import { cn } from "@/lib/utils";
+import type { SocialAttendee } from "../actions";
 
 interface DownloadGrillaButtonProps {
   days: GridDay[];
   selectedArtists: Set<string>;
+  socialAttendance?: Record<string, SocialAttendee[]>;
 }
 
 const DAY_ACCENT_BG: Record<string, string> = {
@@ -30,6 +32,7 @@ type Status = "idle" | "generating" | "done" | "error";
 export function DownloadGrillaButton({
   days,
   selectedArtists,
+  socialAttendance,
 }: DownloadGrillaButtonProps) {
   const [showPicker, setShowPicker] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
@@ -46,6 +49,16 @@ export function DownloadGrillaButton({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showPicker]);
 
+  // Convert SocialAttendee[] → string[] for the image generator
+  const socialOverlay = socialAttendance
+    ? Object.fromEntries(
+        Object.entries(socialAttendance).map(([artistId, attendees]) => [
+          artistId,
+          attendees.map((a) => a.username),
+        ]),
+      )
+    : undefined;
+
   const handleDownload = useCallback(
     async (dayIndex: number) => {
       const day = days[dayIndex];
@@ -53,7 +66,11 @@ export function DownloadGrillaButton({
       setStatus("generating");
 
       try {
-        const blob = await generateGrillaImage({ day, selectedArtists });
+        const blob = await generateGrillaImage({
+          day,
+          selectedArtists,
+          socialOverlay,
+        });
         await downloadOrShareImage(blob, day.label);
         setStatus("done");
         setTimeout(() => {
@@ -70,7 +87,7 @@ export function DownloadGrillaButton({
         }, 2000);
       }
     },
-    [days, selectedArtists],
+    [days, selectedArtists, socialOverlay],
   );
 
   return (
