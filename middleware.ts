@@ -54,12 +54,17 @@ export async function middleware(request: NextRequest) {
   if (user && !isPublic && !isOnboarding) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id")
+      .select("id, is_public")
       .eq("id", user.id)
       .single();
 
     if (!profile) {
       return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
+
+    // ── Community opt-out → block /social routes ──
+    if (!profile.is_public && pathname.startsWith("/social")) {
+      return NextResponse.redirect(new URL("/grilla", request.url));
     }
   }
 

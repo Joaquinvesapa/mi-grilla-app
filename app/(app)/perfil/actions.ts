@@ -128,6 +128,37 @@ export async function updateProfile(
   }
 
   revalidatePath("/perfil");
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+// ── Community onboarding choice ────────────────────────────
+
+export async function setCommunityChoice(
+  isPublic: boolean,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      is_public: isPublic,
+      community_onboarding_completed: true,
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("setCommunityChoice error:", error);
+    return { success: false, error: "No se pudo guardar. Intentá de nuevo." };
+  }
+
+  revalidatePath("/", "layout");
   return { success: true };
 }
 

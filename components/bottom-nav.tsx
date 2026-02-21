@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+interface BottomNavProps {
+  showSocial?: boolean;
+}
+
 type NavItem = {
   href: string;
   label: string;
@@ -129,7 +133,7 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export function BottomNav() {
+export function BottomNav({ showSocial = true }: BottomNavProps) {
   const pathname = usePathname();
 
   return (
@@ -147,7 +151,11 @@ export function BottomNav() {
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      {NAV_ITEMS.filter((item) => !item.disabled).map((item) => {
+      {NAV_ITEMS.filter((item) => {
+        if (item.disabled) return false;
+        if (item.href === "/social" && !showSocial) return false;
+        return true;
+      }).map((item) => {
         const isActive = item.prefixMatch
           ? pathname.startsWith(item.href)
           : pathname === item.href;

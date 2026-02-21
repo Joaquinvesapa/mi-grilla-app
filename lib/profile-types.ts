@@ -6,6 +6,7 @@ export interface Profile {
   username: string;
   instagram: string | null;
   is_public: boolean;
+  community_onboarding_completed: boolean;
   avatar: string;
   created_at: string;
 }
