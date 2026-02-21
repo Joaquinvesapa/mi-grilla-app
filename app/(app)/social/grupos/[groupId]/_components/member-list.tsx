@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import type { GroupMemberWithProfile } from "@/lib/group-types";
+import { Avatar, AVATAR_SIZE } from "@/components/avatar";
 import { GROUP_ROLE } from "@/lib/group-types";
 import { removeMember, leaveGroup } from "../../actions";
 import { useRouter } from "next/navigation";
@@ -78,12 +79,12 @@ function MemberCard({
       style={{ backgroundColor: "var(--color-surface)" }}
     >
       {/* Avatar */}
-      <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-display uppercase"
-        style={{ backgroundColor: profile.avatar, color: "#ffffff" }}
-      >
-        {profile.username.charAt(0)}
-      </div>
+      <Avatar
+        username={profile.username}
+        color={profile.avatar}
+        src={profile.avatar_url}
+        size={AVATAR_SIZE.MD}
+      />
 
       {/* Info */}
       <div className="flex min-w-0 flex-1 flex-col">

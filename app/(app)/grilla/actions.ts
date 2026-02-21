@@ -106,6 +106,7 @@ export interface SocialAttendee {
   id: string;
   username: string;
   avatar: string;
+  avatar_url: string | null;
 }
 
 /**
@@ -165,7 +166,7 @@ export async function getSocialAttendance(): Promise<
   // 3. Fetch profiles for these users
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, username, avatar")
+    .select("id, username, avatar, avatar_url")
     .in("id", socialUserIds);
 
   const profileMap = new Map<string, SocialAttendee>();

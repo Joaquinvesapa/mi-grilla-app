@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { GridDay, GridArtist } from "@/lib/schedule-types";
 import type { Profile } from "@/lib/profile-types";
+import { Avatar, AVATAR_SIZE } from "@/components/avatar";
 import { STAGE_SELECTED_COLORS } from "@/lib/schedule-utils";
 import { DayTabs } from "../../../../grilla/_components/day-tabs";
 
@@ -136,14 +137,14 @@ function GroupArtistCard({
       <div className="flex shrink-0 items-center">
         <div className="flex -space-x-2">
           {attendees.slice(0, 5).map((profile) => (
-            <div
+            <Avatar
               key={profile.id}
-              title={`@${profile.username}`}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-display uppercase ring-2 ring-surface"
-              style={{ backgroundColor: profile.avatar, color: "#ffffff" }}
-            >
-              {profile.username.charAt(0)}
-            </div>
+              username={profile.username}
+              color={profile.avatar}
+              src={profile.avatar_url}
+              size={AVATAR_SIZE.XS}
+              className="ring-2 ring-surface"
+            />
           ))}
           {attendees.length > 5 && (
             <div

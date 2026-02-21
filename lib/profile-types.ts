@@ -8,6 +8,7 @@ export interface Profile {
   is_public: boolean;
   community_onboarding_completed: boolean;
   avatar: string;
+  avatar_url: string | null;
   created_at: string;
 }
 
@@ -15,6 +16,8 @@ export interface ProfileUpdate {
   username?: string;
   instagram?: string | null;
   is_public?: boolean;
+  avatar?: string;
+  avatar_url?: string | null;
 }
 
 // ── Constants ──────────────────────────────────────────────

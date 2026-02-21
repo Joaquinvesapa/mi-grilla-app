@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { Profile, ProfileUpdate } from "@/lib/profile-types";
+import { AVATAR_COLORS, type Profile, type ProfileUpdate } from "@/lib/profile-types";
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -158,6 +158,108 @@ export async function setCommunityChoice(
     return { success: false, error: "No se pudo guardar. Intentá de nuevo." };
   }
 
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+// ── Update avatar color ────────────────────────────────────
+
+export async function updateAvatarColor(
+  color: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  if (
+    !AVATAR_COLORS.includes(color as (typeof AVATAR_COLORS)[number])
+  ) {
+    return { success: false, error: "Color inválido" };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ avatar: color })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("updateAvatarColor error:", error);
+    return { success: false, error: "No se pudo actualizar el color." };
+  }
+
+  revalidatePath("/perfil");
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+// ── Update avatar photo URL ────────────────────────────────
+
+export async function updateAvatarUrl(
+  url: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ avatar_url: url })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("updateAvatarUrl error:", error);
+    return { success: false, error: "No se pudo guardar la foto." };
+  }
+
+  revalidatePath("/perfil");
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+// ── Remove avatar photo ────────────────────────────────────
+
+export async function removeAvatarPhoto(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  // Remove from storage
+  const { error: storageError } = await supabase.storage
+    .from("avatars")
+    .remove([`${user.id}/avatar`]);
+
+  if (storageError) {
+    console.error("removeAvatarPhoto storage error:", storageError);
+    // Continue — clear the URL even if storage delete fails
+  }
+
+  // Clear the URL in the profile
+  const { error } = await supabase
+    .from("profiles")
+    .update({ avatar_url: null })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("removeAvatarPhoto error:", error);
+    return { success: false, error: "No se pudo eliminar la foto." };
+  }
+
+  revalidatePath("/perfil");
   revalidatePath("/", "layout");
   return { success: true };
 }

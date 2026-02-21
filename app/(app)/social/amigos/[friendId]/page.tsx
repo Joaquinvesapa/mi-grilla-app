@@ -5,6 +5,7 @@ import type { RawSchedule } from "@/lib/schedule-types";
 import scheduleData from "@/lollapalooza-schedule.json";
 import { getMyAttendance } from "../../../grilla/actions";
 import { getFriendAttendance, getFriendProfile } from "../actions";
+import { Avatar, AVATAR_SIZE } from "@/components/avatar";
 import { CompareView } from "./_components/compare-view";
 
 // ── Page ───────────────────────────────────────────────────
@@ -56,12 +57,12 @@ export default async function ComparePage({
         </Link>
 
         {/* Friend avatar */}
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-display uppercase"
-          style={{ backgroundColor: friendProfile.avatar, color: "#ffffff" }}
-        >
-          {friendProfile.username.charAt(0)}
-        </div>
+        <Avatar
+          username={friendProfile.username}
+          color={friendProfile.avatar}
+          src={friendProfile.avatar_url}
+          size={AVATAR_SIZE.SM}
+        />
 
         <div className="flex flex-col">
           <h1 className="font-display text-lg uppercase tracking-wider text-foreground">

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import Link from "next/link";
 import type { FriendshipWithProfile } from "@/lib/friendship-types";
+import { Avatar, AVATAR_SIZE } from "@/components/avatar";
 import { removeFriend } from "../actions";
 
 export function FriendCard({
@@ -25,12 +26,12 @@ export function FriendCard({
       style={{ backgroundColor: "var(--color-surface)" }}
     >
       {/* Avatar */}
-      <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-display uppercase"
-        style={{ backgroundColor: profile.avatar, color: "#ffffff" }}
-      >
-        {profile.username.charAt(0)}
-      </div>
+      <Avatar
+        username={profile.username}
+        color={profile.avatar}
+        src={profile.avatar_url}
+        size={AVATAR_SIZE.LG}
+      />
 
       {/* Info */}
       <div className="flex min-w-0 flex-1 flex-col">

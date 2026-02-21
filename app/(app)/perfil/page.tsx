@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import Image from "next/image";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/profile-types";
 import { ProfileEditForm } from "./_components/profile-edit-form";
+import { AvatarEditor } from "./_components/avatar-editor";
 import { signOut } from "./actions";
 
 export default async function PerfilPage() {
@@ -32,32 +32,7 @@ export default async function PerfilPage() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center px-6 pt-12 pb-8 gap-8">
       {/* Avatar */}
-      <div className="relative">
-        {googleAvatarUrl ? (
-          <Image
-            src={googleAvatarUrl}
-            alt={`Foto de perfil de ${typedProfile.username}`}
-            width={96}
-            height={96}
-            className="rounded-full object-cover"
-            style={{
-              outline: "4px solid var(--color-primary)",
-              outlineOffset: "2px",
-            }}
-            priority
-          />
-        ) : (
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-display uppercase"
-            style={{
-              backgroundColor: typedProfile.avatar,
-              color: "#ffffff",
-            }}
-          >
-            {typedProfile.username.charAt(0)}
-          </div>
-        )}
-      </div>
+      <AvatarEditor profile={typedProfile} googleAvatarUrl={googleAvatarUrl} />
 
       {/* Current username */}
       <div className="flex flex-col items-center gap-1 text-center">
