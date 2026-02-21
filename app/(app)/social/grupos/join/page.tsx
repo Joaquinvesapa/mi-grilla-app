@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useTransition, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { searchGroup, joinGroup, type JoinGroupState } from "../actions";
 
@@ -13,8 +14,21 @@ const buttonPrimary =
 const errorText = "text-xs text-accent-pink pl-1 pt-1";
 
 export default function JoinGrupoPage() {
+  const searchParams = useSearchParams();
+  const codeFromUrl = searchParams.get("code") ?? "";
+
   const [state, searchAction, isSearching] = useActionState(searchGroup, null);
   const [isJoining, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+  const didAutoSearch = useRef(false);
+
+  // Auto-search when arriving from a shared link with ?code=
+  useEffect(() => {
+    if (codeFromUrl.length === 6 && !didAutoSearch.current && !state?.preview) {
+      didAutoSearch.current = true;
+      formRef.current?.requestSubmit();
+    }
+  }, [codeFromUrl, state?.preview]);
 
   function handleJoin() {
     if (!state?.preview) return;
@@ -53,11 +67,12 @@ export default function JoinGrupoPage() {
       </div>
 
       {/* Search form */}
-      <form action={searchAction} className="flex flex-col gap-4">
+      <form ref={formRef} action={searchAction} className="flex flex-col gap-4">
         <div>
           <input
             name="code"
             type="text"
+            defaultValue={codeFromUrl}
             placeholder="Código de invitación"
             autoComplete="off"
             autoCapitalize="characters"

@@ -95,9 +95,14 @@ export async function findGroupByCode(
 ): Promise<GroupPreview | null> {
   const { supabase } = await requireUser();
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .rpc("find_group_by_invite_code", { code: code.toUpperCase() })
     .maybeSingle();
+
+  if (error) {
+    console.error("[findGroupByCode] RPC error:", error.message, error.code);
+    return null;
+  }
 
   return data as GroupPreview | null;
 }
@@ -114,13 +119,22 @@ export async function searchGroup(
     return { fieldErrors: { code: "El código debe tener 6 caracteres" } };
   }
 
-  const preview = await findGroupByCode(code);
+  const { supabase } = await requireUser();
 
-  if (!preview) {
+  const { data, error } = await supabase
+    .rpc("find_group_by_invite_code", { code })
+    .maybeSingle();
+
+  if (error) {
+    console.error("[searchGroup] RPC error:", error.message, error.code);
+    return { error: "Error al buscar el grupo. Intentá de nuevo." };
+  }
+
+  if (!data) {
     return { fieldErrors: { code: "No se encontró un grupo con ese código" } };
   }
 
-  return { preview };
+  return { preview: data as GroupPreview };
 }
 
 // ── Join group ─────────────────────────────────────────────

@@ -3,21 +3,33 @@
 import { useState, useTransition } from "react";
 import type { GroupDetail } from "@/lib/group-types";
 import { GROUP_ROLE } from "@/lib/group-types";
+import { copyToClipboard } from "@/lib/utils";
 import { renameGroup, deleteGroup } from "../../actions";
 import { useRouter } from "next/navigation";
 
 export function GroupHeader({ group }: { group: GroupDetail }) {
   const [isCopied, setIsCopied] = useState(false);
+  const [isCodeCopied, setIsCodeCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const isAdmin = group.my_role === GROUP_ROLE.ADMIN;
 
-  async function handleCopyCode() {
+  async function handleCopyLink() {
     const url = `${window.location.origin}/social/grupos/join?code=${group.invite_code}`;
-    await navigator.clipboard.writeText(url);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    const ok = await copyToClipboard(url);
+    if (ok) {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  }
+
+  async function handleCopyCode() {
+    const ok = await copyToClipboard(group.invite_code);
+    if (ok) {
+      setIsCodeCopied(true);
+      setTimeout(() => setIsCodeCopied(false), 2000);
+    }
   }
 
   async function handleShare() {
@@ -31,9 +43,11 @@ export function GroupHeader({ group }: { group: GroupDetail }) {
         // User cancelled share
       }
     } else {
-      await navigator.clipboard.writeText(text);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      const ok = await copyToClipboard(text);
+      if (ok) {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      }
     }
   }
 
@@ -116,15 +130,20 @@ export function GroupHeader({ group }: { group: GroupDetail }) {
           <span className="text-[11px] text-muted uppercase tracking-wide">
             Código de invitación
           </span>
-          <span className="font-mono text-lg font-bold tracking-[0.3em] text-surface-foreground">
-            {group.invite_code}
-          </span>
+          <button
+            type="button"
+            onClick={handleCopyCode}
+            className="font-mono text-lg font-bold tracking-[0.3em] text-surface-foreground hover:text-primary active:scale-95 transition-all duration-150 touch-manipulation cursor-pointer"
+            aria-label="Copiar código de invitación"
+          >
+            {isCodeCopied ? "Copiado ✓" : group.invite_code}
+          </button>
         </div>
 
         <div className="flex gap-1.5">
           <button
             type="button"
-            onClick={handleCopyCode}
+            onClick={handleCopyLink}
             className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-muted hover:text-foreground hover:border-primary/30 active:scale-95 transition-all duration-150 touch-manipulation"
           >
             {isCopied ? "Copiado ✓" : "Copiar link"}
