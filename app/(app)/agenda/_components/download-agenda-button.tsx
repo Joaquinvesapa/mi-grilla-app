@@ -142,7 +142,7 @@ export function DownloadAgendaButton({
           }}
           role="dialog"
           aria-modal="true"
-          aria-label="Elegir d\u00eda para descargar agenda"
+          aria-label="Elegir día para descargar agenda"
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/50" />
@@ -173,7 +173,7 @@ export function DownloadAgendaButton({
                 className="font-sans text-sm"
                 style={{ color: "var(--color-muted)" }}
               >
-                Eleg\u00ed el d\u00eda que quer\u00e9s descargar
+                Elegí el día que querés descargar
               </p>
             </div>
 
@@ -188,8 +188,7 @@ export function DownloadAgendaButton({
                 const isError =
                   status === "error" && generatingDay === day.label;
                 const accentBg = DAY_ACCENT_BG[day.label] ?? "bg-primary";
-                const accentText =
-                  DAY_ACCENT_TEXT[day.label] ?? "text-primary";
+                const accentText = DAY_ACCENT_TEXT[day.label] ?? "text-primary";
 
                 return (
                   <button
