@@ -43,8 +43,8 @@ function validatePin(pin: string): string | null {
 // ── Step 1: Check if username exists ───────────────────────
 
 export async function checkUsername(username: string): Promise<boolean> {
-  const admin = createAdminClient();
-  const { data } = await admin.rpc("is_username_available", {
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase.rpc("is_username_available", {
     target_username: username.toLowerCase(),
   });
   return data === true;
@@ -60,15 +60,21 @@ export async function authenticate(
     .toLowerCase()
     .trim();
   const pin = (formData.get("pin") as string) ?? "";
-  const isNewUser = formData.get("isNewUser") === "true";
 
   // ── Server-side validation (safety net) ──
   const usernameErr = validateUsername(username);
   if (usernameErr)
-    return { error: "Usuario inválido. Volvé al paso anterior." };
+    return { error: "Usuario inv\u00e1lido. Volv\u00e9 al paso anterior." };
 
   const pinErr = validatePin(pin);
   if (pinErr) return { fieldErrors: { pin: pinErr } };
+
+  // ── Server determines if this is a new user (never trust client) ──
+  const supabase = await createServerSupabaseClient();
+  const { data: isAvailable } = await supabase.rpc("is_username_available", {
+    target_username: username,
+  });
+  const isNewUser = isAvailable === true;
 
   if (isNewUser) {
     // ── Create user + profile + sign in ──
@@ -99,7 +105,6 @@ export async function authenticate(
       return { error: "No se pudo crear el perfil. Intentá de nuevo." };
     }
 
-    const supabase = await createServerSupabaseClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: toFakeEmail(username),
       password: pin,
@@ -107,12 +112,11 @@ export async function authenticate(
 
     if (signInError) {
       return {
-        error: "Cuenta creada, pero no se pudo iniciar sesión. Probá entrar.",
+        error: "Cuenta creada, pero no se pudo iniciar sesi\u00f3n. Prob\u00e1 entrar.",
       };
     }
   } else {
     // ── Sign in existing user ──
-    const supabase = await createServerSupabaseClient();
     const { error } = await supabase.auth.signInWithPassword({
       email: toFakeEmail(username),
       password: pin,

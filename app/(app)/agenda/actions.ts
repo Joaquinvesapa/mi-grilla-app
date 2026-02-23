@@ -26,7 +26,7 @@ export async function removeFromAgenda(
     .eq("artist_id", artistId);
 
   if (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: "No se pudo quitar al artista de la agenda." };
   }
 
   return { success: true };

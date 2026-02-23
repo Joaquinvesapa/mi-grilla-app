@@ -10,6 +10,7 @@ import {
   type FriendshipWithProfile,
   type FriendshipRelation,
 } from "@/lib/friendship-types";
+import { isValidUuid, validateUuids } from "@/lib/security";
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -36,6 +37,10 @@ export async function sendFriendRequest(
   addresseeId: string,
 ): Promise<FriendshipActionResult> {
   const { supabase, userId } = await requireUser();
+
+  if (!isValidUuid(addresseeId)) {
+    return { success: false, error: "ID de usuario inv\u00e1lido" };
+  }
 
   if (addresseeId === userId) {
     return { success: false, error: "No podés agregarte a vos mismo" };
@@ -212,17 +217,21 @@ export async function getFriendshipMap(
 
   if (profileIds.length === 0) return {};
 
+  // Validate all IDs are UUIDs before interpolating into .or() filter
+  const safeIds = validateUuids(profileIds);
+  if (safeIds.length === 0) return {};
+
   const { data } = await supabase
     .from("friendships")
     .select("id, requester_id, addressee_id, status")
     .or(
-      `and(requester_id.eq.${userId},addressee_id.in.(${profileIds.join(",")})),and(addressee_id.eq.${userId},requester_id.in.(${profileIds.join(",")}))`,
+      `and(requester_id.eq.${userId},addressee_id.in.(${safeIds.join(",")})),and(addressee_id.eq.${userId},requester_id.in.(${safeIds.join(",")}))`,
     );
 
   const map: Record<string, { relation: FriendshipRelation; friendshipId: string | null }> = {};
 
   // Default all to NONE
-  for (const id of profileIds) {
+  for (const id of safeIds) {
     if (id === userId) {
       map[id] = { relation: FRIENDSHIP_RELATION.SELF, friendshipId: null };
     } else {
@@ -255,6 +264,8 @@ export async function getFriendAttendance(
 ): Promise<string[]> {
   const { supabase, userId } = await requireUser();
 
+  if (!isValidUuid(friendUserId)) return [];
+
   // Verify they are actually friends
   const { data: friendship } = await supabase
     .from("friendships")
@@ -281,6 +292,8 @@ export async function getFriendProfile(
   friendUserId: string,
 ): Promise<Profile | null> {
   const { supabase, userId } = await requireUser();
+
+  if (!isValidUuid(friendUserId)) return null;
 
   // Verify they are actually friends
   const { data: friendship } = await supabase

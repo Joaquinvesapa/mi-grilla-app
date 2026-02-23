@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AVATAR_COLORS, type Profile, type ProfileUpdate } from "@/lib/profile-types";
+import { isValidStorageUrl } from "@/lib/security";
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -208,6 +209,10 @@ export async function updateAvatarUrl(
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  if (!isValidStorageUrl(url)) {
+    return { success: false, error: "URL de imagen inv\u00e1lida." };
+  }
 
   const { error } = await supabase
     .from("profiles")

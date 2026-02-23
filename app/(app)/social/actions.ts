@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/profile-types";
 import type { FriendshipRelation } from "@/lib/friendship-types";
 import { getFriendshipMap } from "./amigos/actions";
+import { escapeIlike } from "@/lib/security";
 
 // ── Constants ──────────────────────────────────────────────
 
@@ -31,7 +32,20 @@ export async function getCommunityProfiles(
 ): Promise<CommunityResult> {
   const supabase = await createServerSupabaseClient();
 
-  const from = (page - 1) * PAGE_SIZE;
+  // ── Auth check (defense-in-depth — middleware also guards this route) ──
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { profiles: [], total: 0, page: 1, pageSize: PAGE_SIZE };
+  }
+
+  // ── Input sanitization ──
+  const safePage = Math.max(1, Math.floor(page));
+  const safeQuery = typeof query === "string" ? query.slice(0, 50) : "";
+
+  const from = (safePage - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
   let dbQuery = supabase
@@ -41,8 +55,8 @@ export async function getCommunityProfiles(
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  if (query) {
-    dbQuery = dbQuery.ilike("username", `%${query}%`);
+  if (safeQuery) {
+    dbQuery = dbQuery.ilike("username", `%${escapeIlike(safeQuery)}%`);
   }
 
   const { data, count } = await dbQuery;
