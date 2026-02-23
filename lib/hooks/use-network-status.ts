@@ -16,18 +16,20 @@ interface NetworkStatus {
 // ── Hook ───────────────────────────────────────────────────
 
 /**
- * Tracks the browser's online/offline status via navigator.onLine
- * and the online/offline window events.
+ * Tracks the browser's online/offline status via window online/offline events.
  *
- * Returns the current status + last transition direction so the UI
- * can show contextual toasts (e.g., "Volviste a tener conexión").
+ * IMPORTANT: We start optimistically as `isOnline: true` and only flip to
+ * offline when the `offline` EVENT fires. This avoids false negatives from
+ * `navigator.onLine` which is unreliable on many platforms (PWAs, VPNs,
+ * certain mobile networks). The offline/online events are much more
+ * trustworthy than the static property.
  */
 export function useNetworkStatus(): NetworkStatus {
-  const [status, setStatus] = useState<NetworkStatus>(() => ({
-    isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
+  const [status, setStatus] = useState<NetworkStatus>({
+    isOnline: true,
     lastChanged: null,
     lastTransition: null,
-  }));
+  });
 
   const handleOnline = useCallback(() => {
     setStatus({

@@ -18,14 +18,19 @@ const SYNC_TOAST_DURATION = 3000;
 
 /**
  * Floating indicator that shows network status transitions:
- * - "Sin conexión" persistent banner when offline
+ * - "Sin conexión" persistent banner when offline (with dismiss)
  * - "Conexión restaurada" transient toast when coming back online
  * - "Sincronizando cambios…" when processing offline queue
  * - "X cambios pendientes" badge when there are unsynced mutations
+ *
+ * NOTE: The offline banner only shows when the browser fires the `offline`
+ * event (an actual transition). It does NOT show based on `navigator.onLine`
+ * at mount time because that property is unreliable on many platforms.
  */
 export function OfflineIndicator() {
   const { isOnline, lastTransition } = useNetworkStatus();
   const [showOnlineToast, setShowOnlineToast] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<{
     synced: number;
@@ -37,6 +42,13 @@ export function OfflineIndicator() {
   useEffect(() => {
     getPendingMutationCount().then(setPendingCount).catch(() => {});
   }, []);
+
+  // Reset dismissed state when going back offline (new event)
+  useEffect(() => {
+    if (lastTransition === "went-offline") {
+      setDismissed(false);
+    }
+  }, [lastTransition]);
 
   // Handle transition to online: show toast + trigger sync
   useEffect(() => {
@@ -65,8 +77,8 @@ export function OfflineIndicator() {
     return () => clearTimeout(timer);
   }, [lastTransition]);
 
-  // ── Offline banner (persistent) ──
-  if (!isOnline) {
+  // ── Offline banner (persistent, dismissible) ──
+  if (!isOnline && !dismissed) {
     return (
       <div
         role="status"
@@ -99,7 +111,7 @@ export function OfflineIndicator() {
           <line x1="12" y1="20" x2="12.01" y2="20" />
         </svg>
 
-        <div className="flex flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           <span className="font-sans text-sm font-semibold text-foreground">
             Sin conexión
           </span>
@@ -109,6 +121,29 @@ export function OfflineIndicator() {
               : "Los cambios se guardarán localmente"}
           </span>
         </div>
+
+        {/* Dismiss button */}
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          aria-label="Cerrar aviso de sin conexión"
+          className="shrink-0 rounded-full p-1 text-muted transition-colors duration-150 hover:text-foreground touch-manipulation"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
     );
   }
