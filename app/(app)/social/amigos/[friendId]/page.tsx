@@ -32,7 +32,7 @@ export default async function ComparePage({
   const days = parseSchedule(data);
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden px-4 pt-6">
+    <div className="flex flex-col overflow-hidden px-4 pt-6" style={{ height: "var(--app-viewport-height)" }}>
       {/* Header */}
       <div className="flex shrink-0 items-center gap-3 pb-4">
         <Link

@@ -141,14 +141,15 @@ export function BottomNav({ showSocial = true }: BottomNavProps) {
       aria-label="Navegación principal"
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50",
-        "h-16 border-t",
+        "border-t",
         "flex items-stretch",
         "touch-manipulation",
       )}
       style={{
         backgroundColor: "var(--color-surface)",
         borderColor: "var(--color-border)",
-        paddingBottom: "env(safe-area-inset-bottom)",
+        height: "calc(4rem + var(--safe-area-bottom))",
+        paddingBottom: "var(--safe-area-bottom)",
       }}
     >
       {NAV_ITEMS.filter((item) => {

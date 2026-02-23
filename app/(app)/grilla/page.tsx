@@ -26,7 +26,10 @@ export default async function GrillaPage() {
   const isAuthenticated = !!authData.user;
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden px-4 pt-6">
+    <div
+      className="flex flex-col overflow-hidden px-4 pt-6"
+      style={{ height: "var(--app-viewport-height)" }}
+    >
       <div className="flex shrink-0 flex-col gap-1 pb-4">
         <h1 className="font-display text-2xl uppercase tracking-wider color-foreground text-pretty">
           {data.evento}

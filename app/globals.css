@@ -131,13 +131,24 @@ body {
 }
 
 /* ============================================================
- * PWA STANDALONE MODE
- * Extra top padding when running as installed PWA to account
- * for the notch / status bar area on mobile devices.
+ * SAFE AREA — iOS PWA standalone mode
+ * When installed as a PWA, there's no browser chrome so the
+ * app must account for the notch (top) and home indicator
+ * (bottom). We expose a custom property for the full-height
+ * viewport calculation used by scroll containers (grilla,
+ * agenda, etc.) so the formula lives in one place.
  * ============================================================ */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --app-viewport-height: calc(
+    100dvh - 4rem - var(--safe-area-top) - var(--safe-area-bottom)
+  );
+}
+
 @media (display-mode: standalone) {
   body {
-    padding-top: env(safe-area-inset-top);
+    padding-top: var(--safe-area-top);
   }
 }
 
