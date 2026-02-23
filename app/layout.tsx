@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Anton, Host_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 // Display font — headings, artist names, titles, ALL CAPS impact text
@@ -132,6 +133,7 @@ export default function RootLayout({
           Saltar al contenido
         </a>
         {children}
+        <Analytics />
       </body>
     </html>
   );
