@@ -130,6 +130,17 @@ body {
     color 0.2s ease;
 }
 
+/* ============================================================
+ * PWA STANDALONE MODE
+ * Extra top padding when running as installed PWA to account
+ * for the notch / status bar area on mobile devices.
+ * ============================================================ */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   body {
     transition: none;
