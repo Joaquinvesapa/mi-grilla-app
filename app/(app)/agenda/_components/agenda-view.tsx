@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import type { GridDay, GridArtist } from "@/lib/schedule-types";
 import { DayTabs } from "../../grilla/_components/day-tabs";
 import { AgendaCard } from "./agenda-card";
 import { AgendaEmpty } from "./agenda-empty";
 import { DownloadAgendaButton } from "./download-agenda-button";
 import { removeFromAgenda } from "../actions";
+import {
+  cacheAttendance,
+  enqueueMutation,
+  getMutationQueue,
+} from "@/lib/agenda-offline-store";
+import { useNetworkStatus } from "@/lib/hooks/use-network-status";
 
 import type { SocialAttendee } from "../../grilla/actions";
 
@@ -93,6 +99,22 @@ export function AgendaView({
     () => new Set(initialAttendance),
   );
   const [, startTransition] = useTransition();
+  const { isOnline } = useNetworkStatus();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // ── Cache attendance to IndexedDB on mount + when it changes ──
+  useEffect(() => {
+    if (isAuthenticated && initialAttendance.length > 0) {
+      cacheAttendance(initialAttendance).catch(() => {});
+    }
+  }, [isAuthenticated, initialAttendance]);
+
+  // ── Check for pending offline mutations on mount ──
+  useEffect(() => {
+    getMutationQueue()
+      .then((queue) => setPendingCount(queue.length))
+      .catch(() => {});
+  }, []);
 
   // ── Current day data ──
   const day = days[activeDayIndex];
@@ -115,7 +137,7 @@ export function AgendaView({
     return acc + countConflictPairs(dayArtists);
   }, 0);
 
-  // ── Remove handler with optimistic update ──
+  // ── Remove handler with optimistic update + offline support ──
   function handleRemove(artistId: string) {
     // Optimistic: remove immediately from UI
     setAttendance((prev) => {
@@ -124,10 +146,32 @@ export function AgendaView({
       return next;
     });
 
-    // Persist in background, rollback on error
+    if (!isOnline) {
+      // Offline: queue the mutation for later sync
+      enqueueMutation("remove", artistId)
+        .then(() => {
+          setPendingCount((c) => c + 1);
+          // Update the cached attendance too
+          cacheAttendance(
+            Array.from(attendance).filter((id) => id !== artistId),
+          ).catch(() => {});
+        })
+        .catch(() => {
+          // Rollback on queue failure
+          setAttendance((prev) => new Set([...prev, artistId]));
+        });
+      return;
+    }
+
+    // Online: persist to server, rollback on error
     startTransition(async () => {
       const result = await removeFromAgenda(artistId);
-      if (!result.success) {
+      if (result.success) {
+        // Update cached copy
+        cacheAttendance(
+          Array.from(attendance).filter((id) => id !== artistId),
+        ).catch(() => {});
+      } else {
         setAttendance((prev) => new Set([...prev, artistId]));
       }
     });
@@ -195,6 +239,32 @@ export function AgendaView({
             </svg>
             {totalConflictPairs}{" "}
             {totalConflictPairs === 1 ? "conflicto" : "conflictos"}
+          </span>
+        )}
+
+        {/* Pending offline mutations badge */}
+        {pendingCount > 0 && isOnline && (
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-medium tabular-nums"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--color-accent-green) 12%, transparent)",
+              color: "var(--color-accent-green)",
+            }}
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            {pendingCount} pendiente{pendingCount > 1 ? "s" : ""}
           </span>
         )}
       </div>

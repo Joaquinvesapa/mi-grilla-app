@@ -64,6 +64,64 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        {/* ── iOS Splash Screens ──────────────────────────────
+         * apple-touch-startup-image for each iPhone resolution.
+         * Uses a simple SVG data URI as splash (brand color + centered icon).
+         * This prevents the white flash when opening the PWA on iOS.
+         * Sizes cover: iPhone SE, 8, X/XS, XR/11, 12/13/14, 15 Pro Max
+         * ─────────────────────────────────────────────────── */}
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512x512.png"
+          media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)"
+        />
+      </head>
       <body
         className={`${anton.variable} ${hostGrotesk.variable} font-sans antialiased`}
       >

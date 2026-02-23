@@ -50,3 +50,13 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// ── SKIP_WAITING handler for update prompt ─────────────────
+// When the client sends a SKIP_WAITING message, activate the
+// new SW immediately so the app reloads with fresh code.
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
