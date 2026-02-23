@@ -63,7 +63,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" className="dark">
       <head>
         {/* ── iOS Splash Screens ──────────────────────────────
          * apple-touch-startup-image for each iPhone resolution.
