@@ -112,7 +112,8 @@ export async function authenticate(
 
     if (signInError) {
       return {
-        error: "Cuenta creada, pero no se pudo iniciar sesi\u00f3n. Prob\u00e1 entrar.",
+        error:
+          "Cuenta creada, pero no se pudo iniciar sesi\u00f3n. Prob\u00e1 entrar.",
       };
     }
   } else {
