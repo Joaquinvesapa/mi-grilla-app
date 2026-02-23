@@ -1,6 +1,9 @@
+import { Analytics } from "@vercel/analytics/next";
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6">
+      <Analytics />
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="text-5xl">🎸</span>
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
