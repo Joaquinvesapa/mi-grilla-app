@@ -6,14 +6,22 @@ import {
   generateGrillaImage,
   downloadOrShareImage,
 } from "@/lib/generate-grilla-image";
+import { generateStoryImage } from "@/lib/generate-story-image";
 import { cn } from "@/lib/utils";
 import type { SocialAttendee } from "../actions";
+
+// ── Types ───────────────────────────────────────────────────
 
 interface DownloadGrillaButtonProps {
   days: GridDay[];
   selectedArtists: Set<string>;
   socialAttendance?: Record<string, SocialAttendee[]>;
 }
+
+type Status = "idle" | "generating" | "done" | "error";
+type Format = "wallpaper" | "story";
+
+// ── Constants ───────────────────────────────────────────────
 
 const DAY_ACCENT_BG: Record<string, string> = {
   Viernes: "bg-day-viernes",
@@ -27,7 +35,7 @@ const DAY_ACCENT_TEXT: Record<string, string> = {
   Domingo: "text-day-domingo",
 };
 
-type Status = "idle" | "generating" | "done" | "error";
+// ── Component ───────────────────────────────────────────────
 
 export function DownloadGrillaButton({
   days,
@@ -35,11 +43,12 @@ export function DownloadGrillaButton({
   socialAttendance,
 }: DownloadGrillaButtonProps) {
   const [showPicker, setShowPicker] = useState(false);
+  const [format, setFormat] = useState<Format>("wallpaper");
   const [status, setStatus] = useState<Status>("idle");
   const [generatingDay, setGeneratingDay] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Close on Escape
+  // Cerrar con Escape
   useEffect(() => {
     if (!showPicker) return;
     function handleKeyDown(e: KeyboardEvent) {
@@ -49,7 +58,15 @@ export function DownloadGrillaButton({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showPicker]);
 
-  // Convert SocialAttendee[] → string[] for the image generator
+  // Resetear formato al cerrar
+  useEffect(() => {
+    if (!showPicker) {
+      const timer = setTimeout(() => setFormat("wallpaper"), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [showPicker]);
+
+  // Convert SocialAttendee[] → string[] para el generador de imágenes
   const socialOverlay = socialAttendance
     ? Object.fromEntries(
         Object.entries(socialAttendance).map(([artistId, attendees]) => [
@@ -66,12 +83,25 @@ export function DownloadGrillaButton({
       setStatus("generating");
 
       try {
-        const blob = await generateGrillaImage({
-          day,
-          selectedArtists,
-          socialOverlay,
-        });
-        await downloadOrShareImage(blob, day.label);
+        let blob: Blob;
+
+        if (format === "story") {
+          blob = await generateStoryImage({
+            day,
+            selectedArtists,
+            socialOverlay,
+          });
+        } else {
+          blob = await generateGrillaImage({
+            day,
+            selectedArtists,
+            socialOverlay,
+          });
+        }
+
+        const prefix = format === "story" ? "mi-historia" : "migrilla";
+        await downloadOrShareImage(blob, day.label, prefix);
+
         setStatus("done");
         setTimeout(() => {
           setStatus("idle");
@@ -87,12 +117,12 @@ export function DownloadGrillaButton({
         }, 2000);
       }
     },
-    [days, selectedArtists, socialOverlay],
+    [days, format, selectedArtists, socialOverlay],
   );
 
   return (
     <>
-      {/* Download trigger button */}
+      {/* Botón disparador */}
       <button
         type="button"
         onClick={() => setShowPicker(true)}
@@ -126,7 +156,7 @@ export function DownloadGrillaButton({
         </svg>
       </button>
 
-      {/* Day picker modal overlay */}
+      {/* Modal */}
       {showPicker && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
@@ -135,12 +165,12 @@ export function DownloadGrillaButton({
           }}
           role="dialog"
           aria-modal="true"
-          aria-label="Elegir d\u00eda para descargar"
+          aria-label="Elegir formato y día para descargar"
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/50" />
 
-          {/* Modal card */}
+          {/* Tarjeta del modal */}
           <div
             ref={modalRef}
             onClick={(e) => e.stopPropagation()}
@@ -163,14 +193,112 @@ export function DownloadGrillaButton({
                 Descargar grilla
               </h3>
               <p
-                className="text-sm font-sans"
+                className="font-sans text-sm"
                 style={{ color: "var(--color-muted)" }}
               >
-                Elegí el día que queres descargar
+                Elegí el formato y el día
               </p>
             </div>
 
-            {/* Day buttons */}
+            {/* Selector de formato */}
+            <div
+              className="grid grid-cols-2 rounded-xl border overflow-hidden"
+              style={{ borderColor: "var(--color-border)" }}
+            >
+              {/* Fondo de pantalla */}
+              <button
+                type="button"
+                onClick={() => setFormat("wallpaper")}
+                disabled={status === "generating"}
+                aria-pressed={format === "wallpaper"}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 px-3 py-3",
+                  "font-sans text-xs font-medium transition-colors duration-150",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
+                  "disabled:opacity-40",
+                  format === "wallpaper"
+                    ? "bg-primary text-white"
+                    : "hover:opacity-80",
+                )}
+                style={
+                  format !== "wallpaper"
+                    ? { color: "var(--color-foreground)" }
+                    : undefined
+                }
+              >
+                {/* Ícono teléfono */}
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                  <line x1="12" y1="18" x2="12.01" y2="18" />
+                </svg>
+                Fondo
+              </button>
+
+              {/* Historia de Instagram */}
+              <button
+                type="button"
+                onClick={() => setFormat("story")}
+                disabled={status === "generating"}
+                aria-pressed={format === "story"}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 px-3 py-3",
+                  "font-sans text-xs font-medium transition-colors duration-150",
+                  "border-l focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
+                  "disabled:opacity-40",
+                  format === "story"
+                    ? "bg-primary text-white border-transparent"
+                    : "hover:opacity-80",
+                )}
+                style={
+                  format !== "story"
+                    ? {
+                        color: "var(--color-foreground)",
+                        borderColor: "var(--color-border)",
+                      }
+                    : undefined
+                }
+              >
+                {/* Ícono historia (rectángulo con gradiente típico) */}
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="4" ry="4" />
+                  <circle cx="12" cy="12" r="3" />
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" strokeWidth="0" />
+                </svg>
+                Historia
+              </button>
+            </div>
+
+            {/* Descripción del formato seleccionado */}
+            <p
+              className="font-sans text-xs -mt-2"
+              style={{ color: "var(--color-muted)" }}
+            >
+              {format === "wallpaper"
+                ? "Imagen para fondo de pantalla (iPhone Pro Max)"
+                : "Imagen 9:16 para historia de Instagram, siempre en modo oscuro"}
+            </p>
+
+            {/* Botones de días */}
             <div className="flex flex-col gap-2">
               {days.map((day, i) => {
                 const isGenerating =
@@ -256,7 +384,7 @@ export function DownloadGrillaButton({
               })}
             </div>
 
-            {/* Close button */}
+            {/* Cerrar */}
             <button
               type="button"
               onClick={() => setShowPicker(false)}

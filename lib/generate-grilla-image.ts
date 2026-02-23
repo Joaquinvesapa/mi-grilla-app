@@ -253,7 +253,7 @@ export async function generateGrillaImage(
 // Artist card drawing
 // ============================================================
 
-interface DrawCardOptions {
+export interface DrawCardOptions {
   artist: GridArtist;
   isSelected: boolean;
   contentTop: number;
@@ -268,7 +268,7 @@ interface DrawCardOptions {
   socialNames: string[];
 }
 
-function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
+export function drawArtistCard(ctx: CanvasRenderingContext2D, opts: DrawCardOptions) {
   const {
     artist,
     isSelected,
