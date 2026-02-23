@@ -22,14 +22,14 @@ import {
 // ============================================================
 // Agenda-specific layout constants
 // ============================================================
-const CARD_HEIGHT_BASE = 116;
-const CARD_HEIGHT_MIN = 82;
-const CARD_GAP = 10;
+export const CARD_HEIGHT_BASE = 116;
+export const CARD_HEIGHT_MIN = 82;
+export const CARD_GAP = 10;
 const CARD_BORDER_LEFT = 4;
 const CARD_RADIUS = 10;
-const TIME_GROUP_GAP = 28;
-const TIME_LABEL_HEIGHT = 36;
-const TIME_LABEL_GAP = 14;
+export const TIME_GROUP_GAP = 28;
+export const TIME_LABEL_HEIGHT = 36;
+export const TIME_LABEL_GAP = 14;
 const FOOTER_HEIGHT = 50;
 
 // ============================================================
@@ -44,7 +44,7 @@ function formatSocialTextCompact(names: string[]): string {
 }
 
 /** Group artists by start time, preserving chronological order */
-function groupByStartTime(
+export function groupByStartTime(
   artists: GridArtist[],
 ): Array<[string, GridArtist[]]> {
   const groups: Array<[string, GridArtist[]]> = [];
@@ -62,7 +62,7 @@ function groupByStartTime(
 }
 
 /** Calculate total content height for a given card height */
-function calculateContentHeight(
+export function calculateContentHeight(
   timeGroups: Array<[string, GridArtist[]]>,
   cardHeight: number,
 ): number {
@@ -229,15 +229,23 @@ export async function generateAgendaImage(
     }
   }
 
-  // ── 5. Footer stats ──
+  // ── 5. Footer: show count (izq) + branding MiGrilla (der) ──
   const footerY = cursorY + FOOTER_HEIGHT / 2 + 8;
   const showCount = attending.length;
   const statsText = `${showCount} ${showCount === 1 ? "show" : "shows"}`;
+
+  // Show count — left aligned
   ctx.fillStyle = colors.gridTextMuted;
   ctx.font = `500 28px ${sansFont}`;
-  ctx.textAlign = "center";
+  ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText(statsText, IMG_WIDTH / 2, footerY);
+  ctx.fillText(statsText, contentLeft, footerY);
+
+  // App branding — right aligned, display font, day accent color
+  ctx.fillStyle = dayAccent;
+  ctx.font = `400 28px ${displayFont}`;
+  ctx.textAlign = "right";
+  ctx.fillText("MIGRILLA", contentRight, footerY);
 
   // ── Convert to blob ──
   return new Promise((resolve, reject) => {
@@ -256,7 +264,7 @@ export async function generateAgendaImage(
 // Agenda card drawing
 // ============================================================
 
-interface DrawAgendaCardOptions {
+export interface DrawAgendaCardOptions {
   artist: GridArtist;
   x: number;
   y: number;
@@ -269,7 +277,7 @@ interface DrawAgendaCardOptions {
   socialNames: string[];
 }
 
-function drawAgendaCard(
+export function drawAgendaCard(
   ctx: CanvasRenderingContext2D,
   opts: DrawAgendaCardOptions,
 ) {
