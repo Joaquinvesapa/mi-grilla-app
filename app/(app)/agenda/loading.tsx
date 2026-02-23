@@ -1,6 +1,6 @@
 export default function AgendaLoading() {
   return (
-    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden px-4 pt-6">
+    <div className="flex flex-col overflow-hidden px-4 pt-6" style={{ height: "var(--app-viewport-height)" }}>
       {/* Header skeleton */}
       <div className="flex shrink-0 flex-col gap-1 pb-4">
         <div className="h-7 w-36 rounded bg-muted/20 animate-pulse" />

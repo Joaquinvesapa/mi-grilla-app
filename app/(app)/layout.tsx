@@ -2,6 +2,7 @@ import { ViewTransition } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { CommunityOnboardingModal } from "@/components/community-onboarding-modal";
 import { DarkModeToggle } from "@/components/dark-mode-toggle";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({
@@ -37,12 +38,20 @@ export default async function AppLayout({
 
       {showCommunityModal && <CommunityOnboardingModal />}
 
-      {/* Main content: pb-16 reserves space so content doesn't hide behind the nav */}
+      {/* Main content: bottom padding reserves space for the fixed nav.
+          In PWA standalone mode the nav is taller due to safe-area-inset-bottom. */}
       <ViewTransition>
-        <main className="min-h-screen pb-16">{children}</main>
+        <main
+          className="min-h-screen"
+          style={{ paddingBottom: "calc(4rem + var(--safe-area-bottom))" }}
+        >
+          {children}
+        </main>
       </ViewTransition>
 
       <BottomNav showSocial={showSocial} />
+
+      <PWAInstallPrompt />
     </>
   );
 }

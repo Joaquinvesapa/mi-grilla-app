@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Anton, Host_Grotesk } from "next/font/google";
 import "./globals.css";
 
@@ -16,11 +16,44 @@ const hostGrotesk = Host_Grotesk({
   variable: "--font-host-grotesk",
 });
 
+// ── PWA Metadata ───────────────────────────────────────────
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fdf8ff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a14" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: "MiGrilla",
   description: "Armá tu agenda del festival y coordiná con tus amigos.",
+  manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/guitar_svg.svg",
+    icon: [
+      { url: "/guitar_svg.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MiGrilla",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -31,9 +64,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <head>
-        <meta name="theme-color" content="#fdf8ff" />
-      </head>
       <body
         className={`${anton.variable} ${hostGrotesk.variable} font-sans antialiased`}
       >

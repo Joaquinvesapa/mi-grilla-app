@@ -9,6 +9,7 @@ const ContentSecurityPolicy = [
   "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
   "font-src 'self'",
   "connect-src 'self' https://*.supabase.co",
+  "worker-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -58,4 +59,24 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// ── Serwist (Service Worker) — production only ─────────────
+// Only initialize Serwist in production builds.
+// withSerwistInit() injects webpack config that forces
+// Next.js 16 to fall back from Turbopack → webpack even in
+// dev mode. By deferring the require + init to production,
+// the dev server keeps Turbopack and all its benefits.
+
+let configExport: NextConfig = nextConfig;
+
+if (process.env.NODE_ENV === "production") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const withSerwistInit = require("@serwist/next").default;
+  const withSerwist = withSerwistInit({
+    swSrc: "app/sw.ts",
+    swDest: "public/sw.js",
+    additionalPrecacheEntries: [{ url: "/~offline", revision: crypto.randomUUID() }],
+  });
+  configExport = withSerwist(nextConfig);
+}
+
+export default configExport;
