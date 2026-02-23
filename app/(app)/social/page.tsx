@@ -45,12 +45,12 @@ async function CommunityList({
     return (
       <div className="flex flex-col items-center gap-2 py-12 text-center">
         <span className="text-4xl" role="img" aria-label="Sin resultados">
-          🔍
+          {query ? "🔍" : "👋"}
         </span>
         <p className="text-sm text-muted">
           {query
             ? `No se encontraron usuarios con "${query}"`
-            : "Todavía no hay usuarios en la comunidad"}
+            : "Todavía no tenés amigos. ¡Buscá usuarios para agregar!"}
         </p>
       </div>
     );
@@ -60,8 +60,9 @@ async function CommunityList({
     <div className="flex flex-col gap-2">
       {/* Result count */}
       <p className="text-xs text-muted pl-1">
-        {result.total} {result.total === 1 ? "usuario" : "usuarios"}
-        {query ? ` para "${query}"` : " en la comunidad"}
+        {query
+          ? `${result.total} ${result.total === 1 ? "usuario" : "usuarios"} para "${query}"`
+          : `${result.total} ${result.total === 1 ? "amigo" : "amigos"}`}
       </p>
 
       {/* User list */}
