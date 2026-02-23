@@ -92,7 +92,7 @@ export function DownloadAgendaButton({
           blob = await generateAgendaStoryImage({
             day,
             selectedArtists,
-            socialOverlay,
+            socialOverlay: undefined,
           });
         } else {
           blob = await generateAgendaImage({

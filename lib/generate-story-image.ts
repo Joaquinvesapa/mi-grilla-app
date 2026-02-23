@@ -269,7 +269,7 @@ export async function generateStoryImage(
   // "migrilla.app" — URL en el color del día
   ctx.fillStyle = dayAccent;
   ctx.font = `500 22px ${sansFont}`;
-  ctx.fillText("migrilla.app", STORY_WIDTH / 2, footerTop + 140);
+  ctx.fillText("mi-grilla-app.vercel.app", STORY_WIDTH / 2, footerTop + 140);
 
   // ── Convertir a blob ───────────────────────────────────────
   return new Promise((resolve, reject) => {

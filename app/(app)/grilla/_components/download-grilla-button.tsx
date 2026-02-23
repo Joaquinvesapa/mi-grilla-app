@@ -89,7 +89,7 @@ export function DownloadGrillaButton({
           blob = await generateStoryImage({
             day,
             selectedArtists,
-            socialOverlay,
+            socialOverlay: undefined,
           });
         } else {
           blob = await generateGrillaImage({
