@@ -37,7 +37,9 @@ function detectPlatform(): Platform {
   }
 
   const ua = window.navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   if (isIOS) {
     // Safari on iOS: no "CriOS", no "FxiOS", no "OPiOS", no "brave"
@@ -241,8 +243,10 @@ export function PWAInstallPrompt() {
         {platform === "ios-other" && (
           <p className="text-sm leading-relaxed text-muted">
             En iPhone, solo{" "}
-            <span className="font-semibold text-foreground">Safari</span> puede
-            instalar apps web. Abrí{" "}
+            <span className="font-semibold text-foreground">
+              Safari y Google Chrome
+            </span>{" "}
+            puede instalar apps web. Abrí{" "}
             <span className="font-semibold text-foreground">
               MiGrilla en Safari
             </span>{" "}
