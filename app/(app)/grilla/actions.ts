@@ -4,6 +4,11 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { FRIENDSHIP_STATUS } from "@/lib/friendship-types";
 import type { Profile } from "@/lib/profile-types";
 
+// ── Constants ──────────────────────────────────────────────
+
+/** Maximum number of artist selections per user (prevents DoS via oversized arrays). */
+const MAX_ATTENDANCE_ITEMS = 500;
+
 /**
  * Obtiene los artist IDs que el usuario logueado marcó como "voy".
  * Devuelve un array vacío si no hay sesión.
@@ -50,6 +55,14 @@ export async function saveAttendance(
     return { success: false, error: "No autenticado" };
   }
 
+  // ── Input validation ──
+  if (!Array.isArray(artistIds) || artistIds.length > MAX_ATTENDANCE_ITEMS) {
+    return { success: false, error: "Selecci\u00f3n inv\u00e1lida" };
+  }
+
+  // Deduplicate and filter empty/non-string values
+  const sanitizedIds = [...new Set(artistIds.filter((id) => typeof id === "string" && id.length > 0))];
+
   // 1. Obtener las selecciones actuales
   const { data: existing, error: fetchError } = await supabase
     .from("attendance")
@@ -57,14 +70,14 @@ export async function saveAttendance(
     .eq("user_id", user.id);
 
   if (fetchError) {
-    return { success: false, error: fetchError.message };
+    return { success: false, error: "No se pudo obtener la asistencia actual." };
   }
 
   const existingIds = new Set(existing.map((row) => row.artist_id));
-  const newIds = new Set(artistIds);
+  const newIds = new Set(sanitizedIds);
 
   // 2. Calcular diff
-  const toInsert = artistIds.filter((id) => !existingIds.has(id));
+  const toInsert = sanitizedIds.filter((id) => !existingIds.has(id));
   const toDelete = existing
     .map((row) => row.artist_id)
     .filter((id) => !newIds.has(id));
@@ -79,7 +92,7 @@ export async function saveAttendance(
     );
 
     if (insertError) {
-      return { success: false, error: insertError.message };
+      return { success: false, error: "No se pudo guardar la selecci\u00f3n." };
     }
   }
 
@@ -92,7 +105,7 @@ export async function saveAttendance(
       .in("artist_id", toDelete);
 
     if (deleteError) {
-      return { success: false, error: deleteError.message };
+      return { success: false, error: "No se pudo actualizar la selecci\u00f3n." };
     }
   }
 

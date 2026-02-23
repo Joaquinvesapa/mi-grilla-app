@@ -366,7 +366,17 @@ export async function getGroupDetail(
 export async function getGroupAttendance(
   groupId: string,
 ): Promise<Record<string, Profile[]>> {
-  const { supabase } = await requireUser();
+  const { supabase, userId } = await requireUser();
+
+  // ── Defense-in-depth: verify caller is a member of the group ──
+  const { data: myMembership } = await supabase
+    .from("group_members")
+    .select("id")
+    .eq("group_id", groupId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!myMembership) return {};
 
   // Fetch all members
   const { data: members } = await supabase
