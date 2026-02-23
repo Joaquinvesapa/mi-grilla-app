@@ -2,6 +2,7 @@ import { ViewTransition } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { CommunityOnboardingModal } from "@/components/community-onboarding-modal";
 import { DarkModeToggle } from "@/components/dark-mode-toggle";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({
@@ -43,6 +44,8 @@ export default async function AppLayout({
       </ViewTransition>
 
       <BottomNav showSocial={showSocial} />
+
+      <PWAInstallPrompt />
     </>
   );
 }
