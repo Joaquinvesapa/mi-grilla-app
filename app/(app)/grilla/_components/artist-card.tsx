@@ -60,7 +60,7 @@ export function ArtistCard({
       disabled={!isSelectable}
       aria-pressed={isSelectable ? isSelected : undefined}
       className={cn(
-        "relative flex flex-col items-center justify-center rounded-sm border-l-2 px-3 py-0 text-center transition-[background-color,border-color,opacity,transform,box-shadow] duration-150",
+        "relative flex flex-col items-center justify-center rounded-sm border-l-2 px-1.5 py-0 text-center transition-[background-color,border-color,opacity,transform,box-shadow] duration-150",
         isSelectable ? "cursor-pointer active:scale-[0.97]" : "cursor-default",
         isSelectable && !isSelected && "hover:brightness-125",
         isSelected && "ring-1 ring-grid-text/30",
@@ -80,7 +80,7 @@ export function ArtistCard({
         className={cn(
           "line-clamp-2 w-full font-display uppercase leading-tight tracking-normal",
           isSelected ? "text-white" : "text-grid-text",
-          durationMin >= 45 ? "text-2xl" : "text-lg",
+          durationMin >= 45 ? "text-lg" : "text-sm",
         )}
       >
         {artist.name}
@@ -89,7 +89,7 @@ export function ArtistCard({
       {artist.subtitle && durationMin >= 45 && (
         <span
           className={cn(
-            "text-md leading-tight font-sans",
+            "text-xs leading-tight font-sans",
             isSelected ? "text-white/70" : "text-grid-text-muted",
           )}
         >
@@ -100,7 +100,7 @@ export function ArtistCard({
       {durationMin >= 40 && (
         <span
           className={cn(
-            "mt-0.5 text-md leading-tight tabular-nums font-sans",
+            "mt-0.5 text-xs leading-tight tabular-nums font-sans",
             isSelected ? "text-white/60" : "text-grid-text-muted",
           )}
         >

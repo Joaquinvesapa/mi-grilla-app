@@ -9,9 +9,10 @@ import type {
 
 /**
  * Pixels per minute — controls the vertical density of the grid.
- * 2px/min means a 60-min show = 120px tall.
+ * 1.5px/min means a 60-min show = 90px tall.
+ * 1.1px/min means a 60-min show = 66px tall (compact).
  */
-export const PX_PER_MINUTE = 1.5;
+export const PX_PER_MINUTE = 1.1;
 
 /**
  * We consider any show ending at or before this hour as "next day".
