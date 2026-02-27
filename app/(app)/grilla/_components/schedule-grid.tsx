@@ -26,21 +26,19 @@ export function ScheduleGrid({
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const day = days[activeDayIndex];
 
-  // --- Attendance state ---
+  // ── Attendance state ────────────────────────────────────
   const [selectedArtists, setSelectedArtists] = useState<Set<string>>(
     () => new Set(initialAttendance),
   );
-  // Snapshot of what's saved on the server (to compute isDirty)
   const savedArtistsRef = useRef<Set<string>>(new Set(initialAttendance));
-  // Used to force a re-render after a successful save so isDirty recomputes
   const [, forceUpdate] = useState(0);
 
+  // ── Grid dimensions ─────────────────────────────────────
   const stageCount = day.stages.length;
   const totalRows = day.bounds.totalMinutes;
+  const gridHeight = totalRows * PX_PER_MINUTE + 40; // 40px header row
 
-  const gridHeight = totalRows * PX_PER_MINUTE + 48; // 48px for header row
-
-  // --- Dirty check ---
+  // ── Dirty check ─────────────────────────────────────────
   function computeIsDirty(): boolean {
     const saved = savedArtistsRef.current;
     if (selectedArtists.size !== saved.size) return true;
@@ -64,13 +62,9 @@ export function ScheduleGrid({
     });
   }
 
-  async function handleSave(): Promise<{
-    success: boolean;
-    error?: string;
-  }> {
+  async function handleSave(): Promise<{ success: boolean; error?: string }> {
     const result = await saveAttendance(Array.from(selectedArtists));
     if (result.success) {
-      // Update the "saved" snapshot and force re-render so isDirty recomputes
       savedArtistsRef.current = new Set(selectedArtists);
       forceUpdate((n) => n + 1);
     }
@@ -98,15 +92,15 @@ export function ScheduleGrid({
         <div
           className="relative grid min-w-max"
           style={{
-            gridTemplateColumns: `56px repeat(${stageCount}, minmax(100px, 1fr))`,
-            gridTemplateRows: `48px repeat(${totalRows}, ${PX_PER_MINUTE}px)`,
+            gridTemplateColumns: `48px repeat(${stageCount}, minmax(85px, 1fr))`,
+            gridTemplateRows: `40px repeat(${totalRows}, ${PX_PER_MINUTE}px)`,
             height: gridHeight,
             backgroundColor: "var(--color-grid-bg)",
           }}
         >
           {/* ── Header row: stage names ── */}
           <div
-            className="sticky left-0 top-0 z-30 flex items-center justify-center border-b border-r border-grid-border text-xs font-semibold uppercase tracking-widest"
+            className="sticky left-0 top-0 z-30 flex items-center justify-center border-b border-r border-grid-border text-[10px] font-semibold uppercase tracking-widest"
             style={{
               gridColumn: 1,
               gridRow: 1,
@@ -120,7 +114,7 @@ export function ScheduleGrid({
           {day.stages.map((stage, i) => (
             <div
               key={stage.name}
-              className="sticky top-0 z-20 flex items-center justify-center border-b border-grid-border px-2 text-center font-display text-xl uppercase tracking-wider text-grid-text"
+              className="sticky top-0 z-20 flex items-center justify-center border-b border-grid-border px-1 text-center font-display text-sm uppercase tracking-wider text-grid-text"
               style={{
                 gridColumn: i + 2,
                 gridRow: 1,
