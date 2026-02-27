@@ -48,7 +48,10 @@ export function SaveAttendanceButton({
   const isError = status === STATUS.ERROR;
 
   return (
-    <div className="fixed right-4 bottom-20 z-40 flex flex-col items-end gap-2">
+    <div
+      className="fixed right-4 z-40 flex flex-col items-end gap-2"
+      style={{ bottom: "calc(5rem + var(--safe-area-bottom))" }}
+    >
       <button
         type="button"
         onClick={handleSave}
