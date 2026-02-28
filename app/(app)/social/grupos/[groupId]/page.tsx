@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { parseSchedule } from "@/lib/schedule-utils";
-import type { RawSchedule } from "@/lib/schedule-types";
+import { getScheduleData } from "@/lib/schedule-data";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import scheduleData from "@/lollapalooza-schedule.json";
 import { getGroupDetail, getGroupAttendance } from "../actions";
 import { GroupHeader } from "./_components/group-header";
 import { MemberList } from "./_components/member-list";
@@ -23,9 +22,10 @@ export default async function GroupDetailPage({
 
   if (!user) redirect("/login");
 
-  const [groupDetail, groupAttendance] = await Promise.all([
+  const [groupDetail, groupAttendance, data] = await Promise.all([
     getGroupDetail(groupId),
     getGroupAttendance(groupId),
+    getScheduleData(),
   ]);
 
   // Not a member or group doesn't exist
@@ -33,7 +33,6 @@ export default async function GroupDetailPage({
     redirect("/social/grupos");
   }
 
-  const data = scheduleData as RawSchedule;
   const days = parseSchedule(data);
 
   return (

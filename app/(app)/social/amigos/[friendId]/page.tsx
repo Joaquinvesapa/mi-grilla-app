@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { parseSchedule } from "@/lib/schedule-utils";
-import type { RawSchedule } from "@/lib/schedule-types";
-import scheduleData from "@/lollapalooza-schedule.json";
+import { getScheduleData } from "@/lib/schedule-data";
 import { getMyAttendance } from "../../../grilla/actions";
 import { getFriendAttendance, getFriendProfile } from "../actions";
 import { Avatar, AVATAR_SIZE } from "@/components/avatar";
@@ -17,10 +16,11 @@ export default async function ComparePage({
 }) {
   const { friendId } = await params;
 
-  const [friendProfile, myAttendance, friendAttendance] = await Promise.all([
+  const [friendProfile, myAttendance, friendAttendance, data] = await Promise.all([
     getFriendProfile(friendId),
     getMyAttendance(),
     getFriendAttendance(friendId),
+    getScheduleData(),
   ]);
 
   // If not friends or profile not found, go back
@@ -28,7 +28,6 @@ export default async function ComparePage({
     redirect("/social/amigos");
   }
 
-  const data = scheduleData as RawSchedule;
   const days = parseSchedule(data);
 
   return (

@@ -39,6 +39,9 @@ export async function middleware(request: NextRequest) {
   // Onboarding is accessible only WITH a session (but without profile)
   const isOnboarding = pathname === "/onboarding";
 
+  // Admin route requires is_admin = true
+  const isAdmin = pathname.startsWith("/admin");
+
   // ── No session → login (except public routes) ──
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
@@ -54,12 +57,17 @@ export async function middleware(request: NextRequest) {
   if (user && !isPublic && !isOnboarding) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, is_public")
+      .select("id, is_public, is_admin")
       .eq("id", user.id)
       .single();
 
     if (!profile) {
       return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
+
+    // ── Admin gate → only is_admin = true can access /admin ──
+    if (isAdmin && !profile.is_admin) {
+      return NextResponse.redirect(new URL("/grilla", request.url));
     }
 
     // ── Community opt-out → block /social routes ──
