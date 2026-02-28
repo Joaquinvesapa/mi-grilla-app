@@ -5,28 +5,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AVATAR_COLORS, type Profile, type ProfileUpdate } from "@/lib/profile-types";
 import { isValidStorageUrl } from "@/lib/security";
-
-// ── Helpers ────────────────────────────────────────────────
-
-const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
-const INSTAGRAM_REGEX = /^[a-z0-9._]{1,30}$/i;
-
-function validateUsername(raw: string): string | null {
-  if (!raw) return "Ingresá un nombre de usuario";
-  if (raw.length < 3) return "Mínimo 3 caracteres";
-  if (raw.length > 20) return "Máximo 20 caracteres";
-  if (!USERNAME_REGEX.test(raw))
-    return "Solo letras minúsculas, números y guiones bajos";
-  return null;
-}
-
-function validateInstagram(raw: string): string | null {
-  if (!raw) return null; // optional field
-  const clean = raw.replace(/^@/, "");
-  if (!INSTAGRAM_REGEX.test(clean))
-    return "Instagram inválido (solo letras, números, puntos y guiones bajos)";
-  return null;
-}
+import { validateUsername, validateInstagram } from "@/lib/validation";
 
 // ── Types ──────────────────────────────────────────────────
 

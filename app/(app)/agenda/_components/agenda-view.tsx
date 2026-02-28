@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import type { GridDay, GridArtist } from "@/lib/schedule-types";
+import type { GridDay } from "@/lib/schedule-types";
+import { detectConflicts, countConflictPairs } from "@/lib/agenda-utils";
+import { groupByStartTime } from "@/lib/generate-agenda-image";
 import { DayTabs } from "../../grilla/_components/day-tabs";
 import { AgendaCard } from "./agenda-card";
 import { AgendaEmpty } from "./agenda-empty";
@@ -21,71 +23,6 @@ interface AgendaViewProps {
   initialAttendance: string[];
   isAuthenticated: boolean;
   socialAttendance?: Record<string, SocialAttendee[]>;
-}
-
-/* ────────────────────────────────────────────
- * Conflict detection
- * Dos shows "conflictan" si se superponen en tiempo
- * (la persona no puede estar en dos escenarios a la vez)
- * ──────────────────────────────────────────── */
-
-function detectConflicts(artists: GridArtist[]): Map<string, string[]> {
-  const conflicts = new Map<string, string[]>();
-
-  for (let i = 0; i < artists.length; i++) {
-    for (let j = i + 1; j < artists.length; j++) {
-      const a = artists[i];
-      const b = artists[j];
-
-      // Overlap: A empieza antes de que B termine Y B empieza antes de que A termine
-      if (a.startMin < b.endMin && b.startMin < a.endMin) {
-        if (!conflicts.has(a.id)) conflicts.set(a.id, []);
-        if (!conflicts.has(b.id)) conflicts.set(b.id, []);
-        conflicts.get(a.id)!.push(b.name);
-        conflicts.get(b.id)!.push(a.name);
-      }
-    }
-  }
-
-  return conflicts;
-}
-
-/** Cuenta los pares únicos de conflictos (A↔B = 1 par, no 2) */
-function countConflictPairs(artists: GridArtist[]): number {
-  let count = 0;
-  for (let i = 0; i < artists.length; i++) {
-    for (let j = i + 1; j < artists.length; j++) {
-      if (
-        artists[i].startMin < artists[j].endMin &&
-        artists[j].startMin < artists[i].endMin
-      ) {
-        count++;
-      }
-    }
-  }
-  return count;
-}
-
-/* ────────────────────────────────────────────
- * Time grouping
- * Agrupa shows por horario de inicio para el timeline
- * ──────────────────────────────────────────── */
-
-function groupByStartTime(
-  artists: GridArtist[],
-): Array<[string, GridArtist[]]> {
-  const groups: Array<[string, GridArtist[]]> = [];
-  let currentTime = "";
-
-  for (const artist of artists) {
-    if (artist.startTime !== currentTime) {
-      currentTime = artist.startTime;
-      groups.push([currentTime, []]);
-    }
-    groups[groups.length - 1][1].push(artist);
-  }
-
-  return groups;
 }
 
 export function AgendaView({

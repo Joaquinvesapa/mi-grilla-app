@@ -2,24 +2,13 @@
 
 import type { GridArtist } from "@/lib/schedule-types";
 import { STAGE_SELECTED_COLORS } from "@/lib/schedule-utils";
+import { formatConflictNames } from "@/lib/agenda-utils";
 import { cn } from "@/lib/utils";
 
 interface AgendaCardProps {
   artist: GridArtist;
   conflicts: string[];
   onRemove: (id: string) => void;
-}
-
-/**
- * Formatea la lista de conflictos en texto legible.
- * 1 conflicto:  "Lorde"
- * 2 conflictos: "Lorde y Peggy Gou"
- * 3+:           "Lorde, Peggy Gou y DJO"
- */
-function formatConflictNames(names: string[]): string {
-  if (names.length === 1) return names[0];
-  if (names.length === 2) return `${names[0]} y ${names[1]}`;
-  return `${names.slice(0, -1).join(", ")} y ${names[names.length - 1]}`;
 }
 
 export function AgendaCard({ artist, conflicts, onRemove }: AgendaCardProps) {
