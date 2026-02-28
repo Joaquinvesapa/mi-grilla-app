@@ -186,6 +186,14 @@ function PinStep({
         </button>
       </form>
 
+      {/* Forgot PIN hint (existing users only) */}
+      {!isNewUser && (
+        <p className="text-center text-xs text-muted">
+          ¿Olvidaste tu PIN?{" "}
+          <span className="text-foreground/50">Hablá con un Admin</span>
+        </p>
+      )}
+
       {/* Back */}
       <button
         type="button"
