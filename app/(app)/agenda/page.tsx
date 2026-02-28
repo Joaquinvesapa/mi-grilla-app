@@ -1,8 +1,7 @@
 import { parseSchedule } from "@/lib/schedule-utils";
-import type { RawSchedule } from "@/lib/schedule-types";
+import { getScheduleData } from "@/lib/schedule-data";
 import { getMyAttendance, getSocialAttendance } from "../grilla/actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import scheduleData from "@/lollapalooza-schedule.json";
 import { AgendaView } from "./_components/agenda-view";
 
 export const metadata = {
@@ -11,16 +10,16 @@ export const metadata = {
 };
 
 export default async function AgendaPage() {
-  const data = scheduleData as RawSchedule;
-  const days = parseSchedule(data);
-
   const supabase = await createServerSupabaseClient();
-  const [{ data: authData }, initialAttendance, socialAttendance] =
+  const [data, { data: authData }, initialAttendance, socialAttendance] =
     await Promise.all([
+      getScheduleData(),
       supabase.auth.getUser(),
       getMyAttendance(),
       getSocialAttendance(),
     ]);
+
+  const days = parseSchedule(data);
 
   const isAuthenticated = !!authData.user;
 
