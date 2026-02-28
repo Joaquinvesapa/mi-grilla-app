@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { GridDay, GridArtist } from "@/lib/schedule-types";
 import type { Profile } from "@/lib/profile-types";
 import { STAGE_SELECTED_COLORS } from "@/lib/schedule-utils";
+import { categorizeArtists } from "@/lib/compare-utils";
 import { DayTabs } from "../../../../grilla/_components/day-tabs";
 
 // ── Types ──────────────────────────────────────────────────
@@ -41,14 +42,10 @@ export function CompareView({
   const day = days[activeDayIndex];
 
   // Categorize artists for this day
-  const common = day.artists.filter(
-    (a) => mySet.has(a.id) && friendSet.has(a.id),
-  );
-  const onlyMe = day.artists.filter(
-    (a) => mySet.has(a.id) && !friendSet.has(a.id),
-  );
-  const onlyFriend = day.artists.filter(
-    (a) => !mySet.has(a.id) && friendSet.has(a.id),
+  const { common, onlyMe, onlyFriend } = categorizeArtists(
+    day.artists,
+    mySet,
+    friendSet,
   );
 
   // Global stats

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { randomAvatar } from "@/lib/profile-types";
+import { validateUsername, validatePin, toFakeEmail } from "@/lib/validation";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -11,34 +12,6 @@ export type AuthState = {
   error?: string;
   fieldErrors?: Partial<Record<"pin", string>>;
 } | null;
-
-// ── Constants ──────────────────────────────────────────────
-
-const EMAIL_DOMAIN = "migrilla.app";
-
-const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
-const PIN_REGEX = /^[0-9]{6}$/;
-
-// ── Helpers ────────────────────────────────────────────────
-
-function toFakeEmail(username: string): string {
-  return `${username}@${EMAIL_DOMAIN}`;
-}
-
-function validateUsername(raw: string): string | null {
-  if (!raw) return "Ingresá un nombre de usuario";
-  if (raw.length < 3) return "Mínimo 3 caracteres";
-  if (raw.length > 20) return "Máximo 20 caracteres";
-  if (!USERNAME_REGEX.test(raw))
-    return "Solo letras minúsculas, números y guiones bajos";
-  return null;
-}
-
-function validatePin(pin: string): string | null {
-  if (!pin) return "Ingresá un PIN";
-  if (!PIN_REGEX.test(pin)) return "El PIN debe tener exactamente 6 dígitos";
-  return null;
-}
 
 // ── Step 1: Check if username exists ───────────────────────
 
