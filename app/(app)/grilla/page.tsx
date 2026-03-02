@@ -42,6 +42,7 @@ export default async function GrillaPage() {
 
       <ScheduleGrid
         days={days}
+        eventName={data.evento}
         initialAttendance={initialAttendance}
         isAuthenticated={isAuthenticated}
         socialAttendance={socialAttendance}

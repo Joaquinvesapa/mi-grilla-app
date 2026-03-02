@@ -14,6 +14,7 @@ import {
   enqueueMutation,
   getMutationQueue,
 } from "@/lib/agenda-offline-store";
+import { cacheSchedule } from "@/lib/grilla-offline-store";
 import { useNetworkStatus } from "@/lib/hooks/use-network-status";
 
 import type { SocialAttendee } from "../../grilla/actions";
@@ -39,12 +40,18 @@ export function AgendaView({
   const { isOnline } = useNetworkStatus();
   const [pendingCount, setPendingCount] = useState(0);
 
-  // ── Cache attendance to IndexedDB on mount + when it changes ──
+  // ── Cache attendance + schedule to IndexedDB for offline use ──
   useEffect(() => {
     if (isAuthenticated && initialAttendance.length > 0) {
       cacheAttendance(initialAttendance).catch(() => {});
     }
   }, [isAuthenticated, initialAttendance]);
+
+  useEffect(() => {
+    if (days.length > 0) {
+      cacheSchedule("Lollapalooza Argentina 2025", days).catch(() => {});
+    }
+  }, [days]);
 
   // ── Check for pending offline mutations on mount ──
   useEffect(() => {

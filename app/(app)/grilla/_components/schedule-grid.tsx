@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { GridDay } from "@/lib/schedule-types";
 import { PX_PER_MINUTE } from "@/lib/schedule-utils";
 import { ArtistCard } from "./artist-card";
@@ -9,9 +9,11 @@ import { DayTabs } from "./day-tabs";
 import { SaveAttendanceButton } from "./save-attendance-button";
 import { DownloadGrillaButton } from "./download-grilla-button";
 import { saveAttendance, type SocialAttendee } from "../actions";
+import { cacheSchedule } from "@/lib/grilla-offline-store";
 
 interface ScheduleGridProps {
   days: GridDay[];
+  eventName?: string;
   initialAttendance?: string[];
   isAuthenticated?: boolean;
   socialAttendance?: Record<string, SocialAttendee[]>;
@@ -19,11 +21,19 @@ interface ScheduleGridProps {
 
 export function ScheduleGrid({
   days,
+  eventName = "Lollapalooza Argentina 2025",
   initialAttendance = [],
   isAuthenticated = false,
   socialAttendance = {},
 }: ScheduleGridProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
+
+  // ── Cache schedule data to IndexedDB for offline use ────
+  useEffect(() => {
+    if (days.length > 0) {
+      cacheSchedule(eventName, days).catch(() => {});
+    }
+  }, [days, eventName]);
   const day = days[activeDayIndex];
 
   // ── Attendance state ────────────────────────────────────

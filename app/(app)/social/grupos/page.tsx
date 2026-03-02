@@ -1,29 +1,15 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { getMyGroups } from "./actions";
-import { GroupCard } from "./_components/group-card";
+import { GroupsListClient } from "./_components/groups-list-client";
+import { GroupsActionButtons } from "./_components/groups-action-buttons";
 
 // ── Page ───────────────────────────────────────────────────
 
 export default function GruposPage() {
   return (
     <div className="flex flex-col gap-4">
-      {/* Action buttons */}
-      <div className="flex gap-2">
-        <Link
-          href="/social/grupos/nuevo"
-          className="flex-1 rounded-2xl bg-primary py-3 text-center text-sm font-semibold uppercase tracking-wide text-primary-foreground hover:opacity-90 active:scale-95 transition-all duration-150 touch-manipulation"
-        >
-          Crear grupo
-        </Link>
-        <Link
-          href="/social/grupos/join"
-          className="flex-1 rounded-2xl border border-border py-3 text-center text-sm font-semibold uppercase tracking-wide text-surface-foreground hover:border-primary/30 hover:text-primary active:scale-95 transition-all duration-150 touch-manipulation"
-          style={{ backgroundColor: "var(--color-surface)" }}
-        >
-          Unirse con código
-        </Link>
-      </div>
+      {/* Action buttons — hidden when offline */}
+      <GroupsActionButtons />
 
       {/* Groups list */}
       <Suspense fallback={<GroupsListSkeleton />}>
@@ -38,32 +24,7 @@ export default function GruposPage() {
 async function GroupsList() {
   const groups = await getMyGroups();
 
-  if (groups.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-2 py-12 text-center">
-        <span className="text-4xl" role="img" aria-label="Grupos">
-          👥
-        </span>
-        <p className="text-sm text-muted">
-          Todavía no sos parte de ningún grupo.
-        </p>
-        <p className="max-w-xs text-xs text-muted">
-          Creá un grupo nuevo o unite a uno con un código de invitación.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="text-xs text-muted pl-1">
-        {groups.length} {groups.length === 1 ? "grupo" : "grupos"}
-      </p>
-      {groups.map((group) => (
-        <GroupCard key={group.id} group={group} />
-      ))}
-    </div>
-  );
+  return <GroupsListClient groups={groups} />;
 }
 
 // ── Skeleton ───────────────────────────────────────────────

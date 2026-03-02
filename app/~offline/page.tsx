@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OfflineNav } from "./offline-nav";
 
 export const metadata: Metadata = {
   title: "Sin Conexión | MiGrilla",
@@ -39,16 +40,13 @@ export default function OfflinePage() {
           Sin Conexión
         </h1>
         <p className="max-w-sm text-base text-muted">
-          Parece que no tenés señal. Cuando vuelvas a estar conectado, la app se
-          va a actualizar automáticamente.
+          Parece que no tenés señal. Pero podés seguir consultando las secciones
+          que ya descargaste.
         </p>
       </div>
 
-      {/* Subtle hint */}
-      <p className="mt-4 text-sm text-muted/60">
-        Tip: Si instalaste MiGrilla, la grilla del festival está disponible
-        offline.
-      </p>
+      {/* Offline sections navigation */}
+      <OfflineNav />
     </main>
   );
 }
