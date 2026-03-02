@@ -28,6 +28,9 @@ export function SocialTabs() {
     ? SOCIAL_TAB_ITEMS
     : SOCIAL_TAB_ITEMS.filter((tab) => tab.offlineAvailable);
 
+  // When offline there's only one tab (Grupos) — no point showing a tab bar
+  if (!isOnline) return null;
+
   return (
     <div
       className="flex gap-1 rounded-2xl p-1"
