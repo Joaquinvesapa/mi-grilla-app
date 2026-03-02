@@ -3,21 +3,30 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useNetworkStatus } from "@/lib/hooks/use-network-status";
 
 interface SocialTab {
   href: string;
   label: string;
   exact: boolean;
+  /** If true, this tab is available offline */
+  offlineAvailable?: boolean;
 }
 
 const SOCIAL_TAB_ITEMS: SocialTab[] = [
   { href: "/social", label: "Comunidad", exact: true },
   { href: "/social/amigos", label: "Amigos", exact: false },
-  { href: "/social/grupos", label: "Grupos", exact: false },
+  { href: "/social/grupos", label: "Grupos", exact: false, offlineAvailable: true },
 ];
 
 export function SocialTabs() {
   const pathname = usePathname();
+  const { isOnline } = useNetworkStatus();
+
+  // When offline, only show tabs that are available offline
+  const visibleTabs = isOnline
+    ? SOCIAL_TAB_ITEMS
+    : SOCIAL_TAB_ITEMS.filter((tab) => tab.offlineAvailable);
 
   return (
     <div
@@ -26,7 +35,7 @@ export function SocialTabs() {
       role="tablist"
       aria-label="Secciones sociales"
     >
-      {SOCIAL_TAB_ITEMS.map((tab) => {
+      {visibleTabs.map((tab) => {
         const isActive = tab.exact
           ? pathname === tab.href
           : pathname.startsWith(tab.href);

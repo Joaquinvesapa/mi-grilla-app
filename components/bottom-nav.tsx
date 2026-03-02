@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useNetworkStatus } from "@/lib/hooks/use-network-status";
+import { useOfflineCacheStatus } from "@/lib/hooks/use-offline-cache";
 
 interface BottomNavProps {
   showSocial?: boolean;
@@ -15,7 +17,11 @@ type NavItem = {
   disabled?: boolean;
   /** When true, any pathname starting with href activates this tab */
   prefixMatch?: boolean;
+  /** The IDB cache key to check for offline availability */
+  offlineKey?: "hasGrilla" | "hasAgenda" | "hasGrupos";
 };
+
+// ── Nav item definitions ───────────────────────────────────
 
 const NAV_ITEMS: NavItem[] = [
   {
@@ -43,6 +49,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: "/grilla",
     label: "Grilla",
+    offlineKey: "hasGrilla",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -66,6 +73,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: "/agenda",
     label: "Agenda",
+    offlineKey: "hasAgenda",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -90,6 +98,7 @@ const NAV_ITEMS: NavItem[] = [
     href: "/social",
     label: "Social",
     prefixMatch: true,
+    offlineKey: "hasGrupos",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -133,8 +142,38 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+// ── Component ──────────────────────────────────────────────
+
 export function BottomNav({ showSocial = true }: BottomNavProps) {
   const pathname = usePathname();
+  const { isOnline } = useNetworkStatus();
+  const offlineCache = useOfflineCacheStatus();
+
+  // When offline, redirect Social tab directly to grupos (the only cached section)
+  const getHref = (item: NavItem): string => {
+    if (!isOnline && item.href === "/social") {
+      return "/social/grupos";
+    }
+    return item.href;
+  };
+
+  // Determine if a tab should be accessible
+  const isAccessible = (item: NavItem): boolean => {
+    if (item.disabled) return false;
+
+    // When online, all non-disabled tabs are accessible
+    if (isOnline) return true;
+
+    // When offline, only tabs with cached data are accessible
+    if (!offlineCache.isChecked) return false;
+
+    if (item.offlineKey) {
+      return offlineCache[item.offlineKey];
+    }
+
+    // Tabs without offline support (Home, Perfil) are not accessible offline
+    return false;
+  };
 
   return (
     <nav
@@ -155,17 +194,49 @@ export function BottomNav({ showSocial = true }: BottomNavProps) {
       {NAV_ITEMS.filter((item) => {
         if (item.disabled) return false;
         if (item.href === "/social" && !showSocial) return false;
+        // When offline, hide tabs without cached data entirely
+        if (!isOnline) {
+          if (!offlineCache.isChecked) return false;
+          if (item.offlineKey) return offlineCache[item.offlineKey];
+          return false; // No offline support = hide
+        }
         return true;
       }).map((item) => {
+        const href = getHref(item);
+        const accessible = isAccessible(item);
         const isActive = item.prefixMatch
           ? pathname.startsWith(item.href)
           : pathname === item.href;
 
+        // When offline and the tab label is "Social", show "Grupos" instead
+        const label =
+          !isOnline && item.href === "/social" ? "Grupos" : item.label;
+
+        if (!accessible) {
+          return (
+            <span
+              key={item.href}
+              aria-disabled="true"
+              className={cn(
+                "flex flex-1 flex-col items-center justify-center gap-1",
+                "text-xs font-medium font-sans",
+                "opacity-30 cursor-not-allowed",
+              )}
+              style={{ color: "var(--color-muted)" }}
+            >
+              <span className="flex items-center justify-center w-6 h-6">
+                {item.icon}
+              </span>
+              <span>{label}</span>
+            </span>
+          );
+        }
+
         return (
           <Link
             key={item.href}
-            href={item.href}
-            aria-label={item.label}
+            href={href}
+            aria-label={label}
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "flex flex-1 flex-col items-center justify-center gap-1",
@@ -190,7 +261,7 @@ export function BottomNav({ showSocial = true }: BottomNavProps) {
             >
               {item.icon}
             </span>
-            <span>{item.label}</span>
+            <span>{label}</span>
           </Link>
         );
       })}

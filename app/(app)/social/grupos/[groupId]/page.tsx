@@ -7,6 +7,7 @@ import { getGroupDetail, getGroupAttendance } from "../actions";
 import { GroupHeader } from "./_components/group-header";
 import { MemberList } from "./_components/member-list";
 import { GroupAgenda } from "./_components/group-agenda";
+import { GroupDetailCacher } from "./_components/group-detail-cacher";
 
 export default async function GroupDetailPage({
   params,
@@ -37,6 +38,14 @@ export default async function GroupDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Cache group data to IndexedDB for offline access */}
+      <GroupDetailCacher
+        groupDetail={groupDetail}
+        groupAttendance={groupAttendance}
+        days={days}
+        eventName={data.evento}
+      />
+
       {/* Back link */}
       <Link
         href="/social/grupos"
