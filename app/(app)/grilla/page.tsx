@@ -3,6 +3,7 @@ import { getScheduleData } from "@/lib/schedule-data";
 import { ScheduleGrid } from "./_components/schedule-grid";
 import { getMyAttendance, getSocialAttendance } from "./actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { GrillaOffline } from "./_components/grilla-offline";
 
 export const metadata = {
   title: "Grilla | MiGrilla",
@@ -10,18 +11,31 @@ export const metadata = {
 };
 
 export default async function GrillaPage() {
-  // Fetch schedule from DB + auth + attendance in parallel
-  const supabase = await createServerSupabaseClient();
-  const [data, { data: authData }, initialAttendance, socialAttendance] =
-    await Promise.all([
-      getScheduleData(),
-      supabase.auth.getUser(),
-      getMyAttendance(),
-      getSocialAttendance(),
-    ]);
+  // Try server fetch; fall back to client-side IDB view if offline
+  let supabase;
+  try {
+    supabase = await createServerSupabaseClient();
+  } catch {
+    return <GrillaOffline />;
+  }
+
+  let data;
+  let authData;
+  let initialAttendance;
+  let socialAttendance;
+  try {
+    [data, { data: authData }, initialAttendance, socialAttendance] =
+      await Promise.all([
+        getScheduleData(),
+        supabase.auth.getUser(),
+        getMyAttendance(),
+        getSocialAttendance(),
+      ]);
+  } catch {
+    return <GrillaOffline />;
+  }
 
   const days = parseSchedule(data);
-
   const isAuthenticated = !!authData.user;
 
   return (

@@ -18,18 +18,21 @@ interface NetworkStatus {
 /**
  * Tracks the browser's online/offline status via window online/offline events.
  *
- * IMPORTANT: We start optimistically as `isOnline: true` and only flip to
- * offline when the `offline` EVENT fires. This avoids false negatives from
- * `navigator.onLine` which is unreliable on many platforms (PWAs, VPNs,
- * certain mobile networks). The offline/online events are much more
- * trustworthy than the static property.
+ * Initial state: reads `navigator.onLine` when available. While `navigator.onLine`
+ * can give false positives (says online behind captive portals, VPNs, etc.),
+ * when it returns `false` it's ALWAYS reliable — the device has no network at all.
+ * This lets us detect "already offline at mount" which is critical for PWA
+ * pages served from Service Worker cache.
+ *
+ * After mount, we listen to online/offline events for real-time transitions.
  */
 export function useNetworkStatus(): NetworkStatus {
-  const [status, setStatus] = useState<NetworkStatus>({
-    isOnline: true,
+  const [status, setStatus] = useState<NetworkStatus>(() => ({
+    // Read navigator.onLine for initial state (SSR-safe: defaults to true)
+    isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
     lastChanged: null,
     lastTransition: null,
-  });
+  }));
 
   const handleOnline = useCallback(() => {
     setStatus({
@@ -48,6 +51,19 @@ export function useNetworkStatus(): NetworkStatus {
   }, []);
 
   useEffect(() => {
+    // Sync with actual browser state on mount (handles hydration mismatch)
+    const actual = navigator.onLine;
+    setStatus((prev) => {
+      if (prev.isOnline !== actual) {
+        return {
+          isOnline: actual,
+          lastChanged: Date.now(),
+          lastTransition: actual ? "went-online" : "went-offline",
+        };
+      }
+      return prev;
+    });
+
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 

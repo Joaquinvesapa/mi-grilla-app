@@ -8,6 +8,7 @@ import { GroupHeader } from "./_components/group-header";
 import { MemberList } from "./_components/member-list";
 import { GroupAgenda } from "./_components/group-agenda";
 import { GroupDetailCacher } from "./_components/group-detail-cacher";
+import { GroupDetailOffline } from "./_components/group-detail-offline";
 
 export default async function GroupDetailPage({
   params,
@@ -16,18 +17,39 @@ export default async function GroupDetailPage({
 }) {
   const { groupId } = await params;
 
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // ── Try fetching from server; fall back to offline view if it fails ──
+  let supabase;
+  try {
+    supabase = await createServerSupabaseClient();
+  } catch {
+    // Can't even create the Supabase client (offline, no env, etc.)
+    return <GroupDetailOffline groupId={groupId} />;
+  }
+
+  let user;
+  try {
+    const { data: authData } = await supabase.auth.getUser();
+    user = authData.user;
+  } catch {
+    // Auth call failed (offline)
+    return <GroupDetailOffline groupId={groupId} />;
+  }
 
   if (!user) redirect("/login");
 
-  const [groupDetail, groupAttendance, data] = await Promise.all([
-    getGroupDetail(groupId),
-    getGroupAttendance(groupId),
-    getScheduleData(),
-  ]);
+  let groupDetail;
+  let groupAttendance;
+  let data;
+  try {
+    [groupDetail, groupAttendance, data] = await Promise.all([
+      getGroupDetail(groupId),
+      getGroupAttendance(groupId),
+      getScheduleData(),
+    ]);
+  } catch {
+    // Server fetches failed (offline) → render from IDB cache
+    return <GroupDetailOffline groupId={groupId} />;
+  }
 
   // Not a member or group doesn't exist
   if (!groupDetail) {

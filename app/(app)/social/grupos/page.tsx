@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { GroupWithMeta } from "@/lib/group-types";
 import { getMyGroups } from "./actions";
 import { GroupsListClient } from "./_components/groups-list-client";
 import { GroupsActionButtons } from "./_components/groups-action-buttons";
@@ -20,9 +21,16 @@ export default function GruposPage() {
 }
 
 // ── Groups list (async server component) ───────────────────
+// Wrapped in try/catch so offline SW-cached pages degrade gracefully:
+// if the Supabase fetch fails, GroupsListClient loads from IndexedDB.
 
 async function GroupsList() {
-  const groups = await getMyGroups();
+  let groups: GroupWithMeta[];
+  try {
+    groups = await getMyGroups();
+  } catch {
+    groups = [];
+  }
 
   return <GroupsListClient groups={groups} />;
 }
