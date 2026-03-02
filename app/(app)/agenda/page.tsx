@@ -3,6 +3,7 @@ import { getScheduleData } from "@/lib/schedule-data";
 import { getMyAttendance, getSocialAttendance } from "../grilla/actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AgendaView } from "./_components/agenda-view";
+import { AgendaOffline } from "./_components/agenda-offline";
 
 export const metadata = {
   title: "Mi Agenda | MiGrilla",
@@ -10,17 +11,31 @@ export const metadata = {
 };
 
 export default async function AgendaPage() {
-  const supabase = await createServerSupabaseClient();
-  const [data, { data: authData }, initialAttendance, socialAttendance] =
-    await Promise.all([
-      getScheduleData(),
-      supabase.auth.getUser(),
-      getMyAttendance(),
-      getSocialAttendance(),
-    ]);
+  // Try server fetch; fall back to client-side IDB view if offline
+  let supabase;
+  try {
+    supabase = await createServerSupabaseClient();
+  } catch {
+    return <AgendaOffline />;
+  }
+
+  let data;
+  let authData;
+  let initialAttendance;
+  let socialAttendance;
+  try {
+    [data, { data: authData }, initialAttendance, socialAttendance] =
+      await Promise.all([
+        getScheduleData(),
+        supabase.auth.getUser(),
+        getMyAttendance(),
+        getSocialAttendance(),
+      ]);
+  } catch {
+    return <AgendaOffline />;
+  }
 
   const days = parseSchedule(data);
-
   const isAuthenticated = !!authData.user;
 
   return (
