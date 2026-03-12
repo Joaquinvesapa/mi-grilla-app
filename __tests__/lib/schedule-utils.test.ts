@@ -185,8 +185,8 @@ describe("parseDay", () => {
     const day = makeDay()
     const parsed = parseDay(day)
 
-    // ID format: "dia-stage-nombre" with spaces replaced by hyphens
-    expect(parsed.artists[0].id).toBe("Viernes-Flow-Stage-Tame-Impala")
+    // ID format: "dia-nombre" with spaces replaced by hyphens (stage-agnostic)
+    expect(parsed.artists[0].id).toBe("Viernes-Tame-Impala")
   })
 
   it("assigns correct stageIndex for multi-stage days", () => {

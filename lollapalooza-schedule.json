@@ -78,12 +78,12 @@
               "fin": "15:15"
             },
             {
-              "nombre": "Militantes del Clima",
+              "nombre": "Balu Brigada",
               "inicio": "16:00",
               "fin": "17:00"
             },
             {
-              "nombre": "Balu Brigada",
+              "nombre": "Militantes del Climax",
               "inicio": "18:00",
               "fin": "19:00"
             },
@@ -138,7 +138,7 @@
               "fin": "21:45"
             },
             {
-              "nombre": "Xousuke Yukimatsu",
+              "nombre": "¥ousuk€ ¥uk1mat$u",
               "inicio": "22:15",
               "fin": "23:30"
             }
@@ -149,7 +149,7 @@
           "artistas": [
             {
               "nombre": "Arjaus Crew",
-              "subtitulo": "Franco Trocca - B2B",
+              "subtitulo": "Franco y Mateo Trocca - B2B",
               "inicio": "15:00",
               "fin": "15:45"
             },
@@ -159,7 +159,7 @@
               "fin": "16:45"
             },
             {
-              "nombre": "Partysami Klezmer Band",
+              "nombre": "Partysani Klezmer Band",
               "inicio": "17:00",
               "fin": "17:45"
             },
@@ -219,6 +219,11 @@
           "nombre": "Samsung Stage",
           "artistas": [
             {
+              "nombre": "Tobika",
+              "inicio": "13:45",
+              "fin": "14:30"
+            },
+            {
               "nombre": "Nasa Histoires",
               "inicio": "15:15",
               "fin": "16:00"
@@ -249,17 +254,12 @@
           "nombre": "Alternative Stage",
           "artistas": [
             {
-              "nombre": "Tobika",
-              "inicio": "13:45",
-              "fin": "14:30"
-            },
-            {
               "nombre": "Marttein",
               "inicio": "14:30",
               "fin": "15:15"
             },
             {
-              "nombre": "Timo",
+              "nombre": "Timø",
               "inicio": "16:00",
               "fin": "17:00"
             },
@@ -314,12 +314,12 @@
               "fin": "20:45"
             },
             {
-              "nombre": "2Hollis + Nonmulas",
+              "nombre": "2Hollis + Rommulas",
               "inicio": "21:00",
               "fin": "22:00"
             },
             {
-              "nombre": "Brutalismo 3000",
+              "nombre": "Brutalismus 3000",
               "inicio": "22:30",
               "fin": "23:45"
             }
@@ -370,7 +370,7 @@
           "nombre": "Flow Stage",
           "artistas": [
             {
-              "nombre": "143leti",
+              "nombre": "143Leti",
               "inicio": "14:15",
               "fin": "15:00"
             },
@@ -399,6 +399,11 @@
         {
           "nombre": "Samsung Stage",
           "artistas": [
+            {
+              "nombre": "Reybruja",
+              "inicio": "13:30",
+              "fin": "14:15"
+            },
             {
               "nombre": "Massacre",
               "inicio": "15:00",
@@ -429,11 +434,6 @@
         {
           "nombre": "Alternative Stage",
           "artistas": [
-            {
-              "nombre": "Reybruja",
-              "inicio": "13:30",
-              "fin": "14:15"
-            },
             {
               "nombre": "Ryan",
               "inicio": "14:15",
@@ -470,7 +470,7 @@
               "fin": "14:15"
             },
             {
-              "nombre": "Felix Vestre",
+              "nombre": "Félix Vestre",
               "inicio": "14:30",
               "fin": "15:30"
             },
@@ -516,7 +516,7 @@
               "fin": "15:45"
             },
             {
-              "nombre": "Las Canciones de Aine",
+              "nombre": "Las Canciones de Ainé",
               "inicio": "16:00",
               "fin": "16:45"
             },
@@ -526,10 +526,14 @@
               "fin": "17:45"
             },
             {
-              "nombre": "¿Que Lio, Hugo!",
-              "subtitulo": "Astrocity",
+              "nombre": "¡Qué Lío, Hugo!",
               "inicio": "18:00",
-              "fin": "18:30"
+              "fin": "18:20"
+            },
+            {
+              "nombre": "Astrocity",
+              "inicio": "18:30",
+              "fin": "18:50"
             },
             {
               "nombre": "Topa",
