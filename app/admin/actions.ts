@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { RawSchedule } from "@/lib/schedule-types";
@@ -100,6 +101,9 @@ export async function seedSchedule(): Promise<{
     return { success: false, error: "Error al guardar la grilla" };
   }
 
+  revalidatePath("/grilla", "page");
+  revalidatePath("/agenda", "page");
+
   return { success: true };
 }
 
@@ -182,6 +186,9 @@ export async function updateSchedule(
     }
   }
 
+  revalidatePath("/grilla", "page");
+  revalidatePath("/agenda", "page");
+
   return { success: true };
 }
 
@@ -223,6 +230,9 @@ export async function resetSchedule(): Promise<{
     console.error("Error resetting schedule:", error.message);
     return { success: false, error: "Error al resetear la grilla" };
   }
+
+  revalidatePath("/grilla", "page");
+  revalidatePath("/agenda", "page");
 
   return { success: true };
 }
@@ -298,6 +308,104 @@ export async function updateArtistTime(
     console.error("Error updating artist time:", updateError.message);
     return { success: false, error: "Error al actualizar el horario" };
   }
+
+  revalidatePath("/grilla", "page");
+  revalidatePath("/agenda", "page");
+
+  return { success: true };
+}
+
+/**
+ * Moves an artist from one stage to another within the same day.
+ * Preserves all artist fields (nombre, subtitulo, inicio, fin).
+ */
+export async function moveArtistStage(
+  dayName: string,
+  sourceStageName: string,
+  targetStageName: string,
+  artistName: string,
+): Promise<{ success: boolean; error?: string }> {
+  const adminId = await requireAdmin();
+  if (!adminId) {
+    return { success: false, error: "No autorizado" };
+  }
+
+  if (sourceStageName === targetStageName) {
+    return {
+      success: false,
+      error: "El escenario destino es el mismo que el actual",
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+
+  const { data: row, error: fetchError } = await supabase
+    .from("schedule")
+    .select("id, data")
+    .limit(1)
+    .single();
+
+  if (fetchError || !row) {
+    return { success: false, error: "No se encontró la grilla" };
+  }
+
+  const schedule = row.data as RawSchedule;
+
+  // ── Find the day ──
+  const dia = schedule.dias.find((d) => d.dia === dayName);
+  if (!dia) {
+    return { success: false, error: `Día no encontrado: ${dayName}` };
+  }
+
+  // ── Find source stage and artist ──
+  const sourceStage = dia.escenarios.find((e) => e.nombre === sourceStageName);
+  if (!sourceStage) {
+    return {
+      success: false,
+      error: `No se encontró: ${artistName} en ${sourceStageName} (${dayName})`,
+    };
+  }
+
+  const artistIndex = sourceStage.artistas.findIndex(
+    (a) => a.nombre === artistName,
+  );
+  if (artistIndex === -1) {
+    return {
+      success: false,
+      error: `No se encontró: ${artistName} en ${sourceStageName} (${dayName})`,
+    };
+  }
+
+  // ── Find target stage ──
+  const targetStage = dia.escenarios.find((e) => e.nombre === targetStageName);
+  if (!targetStage) {
+    return {
+      success: false,
+      error: `Escenario destino no encontrado: ${targetStageName}`,
+    };
+  }
+
+  // ── Move artist: splice from source, push to target ──
+  const [artist] = sourceStage.artistas.splice(artistIndex, 1);
+  targetStage.artistas.push(artist);
+
+  // ── Persist ──
+  const { error: updateError } = await supabase
+    .from("schedule")
+    .update({
+      data: schedule,
+      updated_at: new Date().toISOString(),
+      updated_by: adminId,
+    })
+    .eq("id", row.id);
+
+  if (updateError) {
+    console.error("Error moving artist stage:", updateError.message);
+    return { success: false, error: "Error al mover el artista de escenario" };
+  }
+
+  revalidatePath("/grilla", "page");
+  revalidatePath("/agenda", "page");
 
   return { success: true };
 }
