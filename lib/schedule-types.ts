@@ -57,4 +57,13 @@ export interface GridDay {
   bounds: GridBounds;
 }
 
+/** Per-stage live status — used by the "EN VIVO" overlay */
+
+export interface LiveStage {
+  stageName: string;
+  stageIndex: number;
+  nowPlaying: GridArtist | null;
+  upNext: GridArtist | null;
+}
+
 export type DayLabel = "Viernes" | "Sabado" | "Domingo";

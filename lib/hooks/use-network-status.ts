@@ -28,8 +28,9 @@ interface NetworkStatus {
  */
 export function useNetworkStatus(): NetworkStatus {
   const [status, setStatus] = useState<NetworkStatus>(() => ({
-    // Read navigator.onLine for initial state (SSR-safe: defaults to true)
-    isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
+    // Always initialize as online to match SSR (server has no navigator).
+    // The useEffect below syncs with the real navigator.onLine on mount.
+    isOnline: true,
     lastChanged: null,
     lastTransition: null,
   }));

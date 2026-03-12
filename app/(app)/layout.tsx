@@ -1,7 +1,9 @@
 import { ViewTransition } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { CommunityOnboardingModal } from "@/components/community-onboarding-modal";
+import { LiveNowMenu } from "@/components/live-now-menu";
 import { DarkModeToggle } from "@/components/dark-mode-toggle";
+import { NavigationProgressBar } from "@/components/navigation-progress-bar";
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { SWUpdatePrompt } from "@/components/sw-update-prompt";
@@ -38,6 +40,8 @@ export default async function AppLayout({
     <>
       <DarkModeToggle />
 
+      <NavigationProgressBar />
+
       {showCommunityModal && <CommunityOnboardingModal />}
 
       {/* Main content: bottom padding reserves space for the fixed nav.
@@ -50,6 +54,8 @@ export default async function AppLayout({
           {children}
         </main>
       </ViewTransition>
+
+      <LiveNowMenu />
 
       <BottomNav showSocial={showSocial} />
 

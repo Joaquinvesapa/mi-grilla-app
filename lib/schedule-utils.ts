@@ -5,6 +5,7 @@ import type {
   GridStage,
   GridBounds,
   GridDay,
+  LiveStage,
 } from "./schedule-types";
 
 /**
@@ -214,3 +215,42 @@ export const STAGE_SELECTED_BORDER_COLORS: Record<string, string> = {
   "Perry's Stage": "rgb(155, 85, 245)",     // Purple light
   KidzaPalooza: "rgb(255, 110, 40)",        // Orange light
 };
+
+// ── Live Now ───────────────────────────────────────────────
+
+/**
+ * For each stage in the day, find the artist currently performing
+ * (whose time range contains `currentMinutes`) and the next upcoming
+ * artist. Used by the "EN VIVO" overlay / FAB.
+ *
+ * Artists within each stage are sorted by start time so "up next"
+ * is always the earliest show that hasn't started yet.
+ */
+export function computeLiveStages(
+  day: GridDay,
+  currentMinutes: number,
+): LiveStage[] {
+  return day.stages.map((stage) => {
+    // Filter artists belonging to this stage, sorted by start time
+    const stageArtists = day.artists
+      .filter((a) => a.stageIndex === stage.index)
+      .sort((a, b) => a.startMin - b.startMin);
+
+    // Currently performing: startMin <= currentMinutes < endMin
+    const nowPlaying =
+      stageArtists.find(
+        (a) => a.startMin <= currentMinutes && currentMinutes < a.endMin,
+      ) ?? null;
+
+    // Up next: first artist whose start is strictly in the future
+    const upNext =
+      stageArtists.find((a) => a.startMin > currentMinutes) ?? null;
+
+    return {
+      stageName: stage.name,
+      stageIndex: stage.index,
+      nowPlaying,
+      upNext,
+    };
+  });
+}
