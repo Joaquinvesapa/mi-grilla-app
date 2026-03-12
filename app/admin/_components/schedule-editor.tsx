@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import type { RawSchedule, RawDia, RawEscenario, RawArtista } from "@/lib/schedule-types";
 import { STAGE_COLORS, STAGE_BORDER_COLORS, STAGE_SELECTED_COLORS } from "@/lib/schedule-utils";
-import { seedSchedule, updateArtistTime, resetSchedule } from "../actions";
+import { seedSchedule, updateArtistTime, resetSchedule, moveArtistStage } from "../actions";
 import { cn } from "@/lib/utils";
 
 // ── Types ──────────────────────────────────────────────────
@@ -22,25 +22,26 @@ interface EditingArtist {
 
 // ── Helpers ────────────────────────────────────────────────
 
-/** Build a lookup key for an artist: "Viernes|Flow Stage|Tyler, The Creator" */
-function artistKey(day: string, stage: string, name: string): string {
-  return `${day}|${stage}|${name}`;
+/** Build a lookup key for an artist: "Viernes|Tyler, The Creator" */
+function artistKey(day: string, name: string): string {
+  return `${day}|${name}`;
 }
 
 /**
- * Build a map of original artist times from the static JSON.
- * Used to detect which artists have been modified.
+ * Build a map of original artist data from the static JSON.
+ * Used to detect which artists have been modified (time or stage).
  */
 function buildOriginalTimesMap(
   schedule: RawSchedule,
-): Map<string, { inicio: string; fin: string }> {
-  const map = new Map<string, { inicio: string; fin: string }>();
+): Map<string, { inicio: string; fin: string; stageName: string }> {
+  const map = new Map<string, { inicio: string; fin: string; stageName: string }>();
   for (const dia of schedule.dias) {
     for (const esc of dia.escenarios) {
       for (const art of esc.artistas) {
-        map.set(artistKey(dia.dia, esc.nombre, art.nombre), {
+        map.set(artistKey(dia.dia, art.nombre), {
           inicio: art.inicio,
           fin: art.fin,
+          stageName: esc.nombre,
         });
       }
     }
@@ -55,6 +56,7 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
   const [editing, setEditing] = useState<EditingArtist | null>(null);
   const [inicio, setInicio] = useState("");
   const [fin, setFin] = useState("");
+  const [selectedStage, setSelectedStage] = useState("");
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [seeded, setSeeded] = useState(isFromDb);
@@ -67,11 +69,15 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
     [originalSchedule],
   );
 
-  /** Check if an artist's times differ from the original JSON */
+  /** Check if an artist's times or stage differ from the original JSON */
   function isModified(dayName: string, stageName: string, artist: RawArtista): boolean {
-    const original = originalTimes.get(artistKey(dayName, stageName, artist.nombre));
+    const original = originalTimes.get(artistKey(dayName, artist.nombre));
     if (!original) return false;
-    return artist.inicio !== original.inicio || artist.fin !== original.fin;
+    return (
+      artist.inicio !== original.inicio ||
+      artist.fin !== original.fin ||
+      stageName !== original.stageName
+    );
   }
 
   // ── Seed handler ─────────────────────────────────────────
@@ -94,6 +100,7 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
     setEditing({ dayName, stageName, artist });
     setInicio(artist.inicio);
     setFin(artist.fin);
+    setSelectedStage(stageName);
     setMessage(null);
   }
 
@@ -101,6 +108,7 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
     setEditing(null);
     setInicio("");
     setFin("");
+    setSelectedStage("");
   }
 
   function handleReset() {
@@ -125,26 +133,85 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
   function handleSave() {
     if (!editing) return;
 
-    startTransition(async () => {
-      const result = await updateArtistTime(
-        editing.dayName,
-        editing.stageName,
-        editing.artist.nombre,
-        inicio,
-        fin,
-      );
+    const stageChanged = selectedStage !== editing.stageName;
+    const timeChanged = inicio !== editing.artist.inicio || fin !== editing.artist.fin;
 
-      if (result.success) {
-        setMessage({
-          text: `${editing.artist.nombre}: ${inicio} - ${fin} ✓`,
-          type: "success",
-        });
+    // Nothing changed → close editor
+    if (!stageChanged && !timeChanged) {
+      setEditing(null);
+      return;
+    }
+
+    startTransition(async () => {
+      // ── Stage move ──
+      if (stageChanged) {
+        const moveResult = await moveArtistStage(
+          editing.dayName,
+          editing.stageName,
+          selectedStage,
+          editing.artist.nombre,
+        );
+
+        if (!moveResult.success) {
+          setMessage({ text: moveResult.error ?? "Error al mover de escenario", type: "error" });
+          return;
+        }
+
+        // ── Optimistic local state: move artist between stages ──
+        const day = schedule.dias.find((d) => d.dia === editing.dayName);
+        if (day) {
+          const sourceStage = day.escenarios.find((e) => e.nombre === editing.stageName);
+          const targetStage = day.escenarios.find((e) => e.nombre === selectedStage);
+          if (sourceStage && targetStage) {
+            const idx = sourceStage.artistas.findIndex((a) => a.nombre === editing.artist.nombre);
+            if (idx !== -1) {
+              const [moved] = sourceStage.artistas.splice(idx, 1);
+              targetStage.artistas.push(moved);
+            }
+          }
+        }
+      }
+
+      // ── Time update (use NEW stage name if stage was moved) ──
+      if (timeChanged) {
+        const effectiveStageName = stageChanged ? selectedStage : editing.stageName;
+        const timeResult = await updateArtistTime(
+          editing.dayName,
+          effectiveStageName,
+          editing.artist.nombre,
+          inicio,
+          fin,
+        );
+
+        if (!timeResult.success) {
+          // Stage move already succeeded — show error but keep the stage change
+          const prefix = stageChanged
+            ? `Escenario actualizado, pero error en horario: `
+            : "";
+          setMessage({
+            text: `${prefix}${timeResult.error ?? "Error al guardar horario"}`,
+            type: "error",
+          });
+          if (stageChanged) {
+            setEditing(null);
+          }
+          return;
+        }
+
+        // Optimistic local state: update time
         editing.artist.inicio = inicio;
         editing.artist.fin = fin;
-        setEditing(null);
-      } else {
-        setMessage({ text: result.error ?? "Error al guardar", type: "error" });
       }
+
+      // ── Success message ──
+      const parts: string[] = [];
+      if (stageChanged) parts.push(`→ ${selectedStage}`);
+      if (timeChanged) parts.push(`${inicio} - ${fin}`);
+      setMessage({
+        text: `${editing.artist.nombre}: ${parts.join(" · ")} ✓`,
+        type: "success",
+      });
+      setEditing(null);
     });
   }
 
@@ -259,10 +326,10 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  {/* Stage color dot */}
+                   {/* Stage color dot */}
                   <div
                     className="h-3 w-3 shrink-0 rounded-full"
-                    style={{ backgroundColor: STAGE_SELECTED_COLORS[editing.stageName] ?? "var(--color-muted)" }}
+                    style={{ backgroundColor: STAGE_SELECTED_COLORS[selectedStage] ?? "var(--color-muted)" }}
                     aria-hidden="true"
                   />
                   <div>
@@ -270,7 +337,9 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
                       {editing.artist.nombre}
                     </p>
                     <p className="text-xs text-muted">
-                      {editing.stageName} · {editing.dayName}
+                      {selectedStage !== editing.stageName
+                        ? `${editing.stageName} → ${selectedStage}`
+                        : editing.stageName} · {editing.dayName}
                     </p>
                   </div>
                 </div>
@@ -295,6 +364,25 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
                     <path d="M6 6l12 12" />
                   </svg>
                 </button>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="edit-stage" className="text-xs font-medium text-muted">
+                  Escenario
+                </label>
+                <select
+                  id="edit-stage"
+                  value={selectedStage}
+                  onChange={(e) => setSelectedStage(e.target.value)}
+                  className="rounded-lg border border-border bg-background px-3 py-2.5 text-base text-foreground focus:border-primary focus:outline-none touch-manipulation"
+                  aria-label="Escenario del artista"
+                >
+                  {activeDay.escenarios.map((esc: RawEscenario) => (
+                    <option key={esc.nombre} value={esc.nombre}>
+                      {esc.nombre}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex items-center gap-3">
@@ -336,9 +424,9 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
                 <button
                   type="button"
                   onClick={handleSave}
-                  disabled={isPending || (inicio === editing.artist.inicio && fin === editing.artist.fin)}
+                  disabled={isPending || (inicio === editing.artist.inicio && fin === editing.artist.fin && selectedStage === editing.stageName)}
                   className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors duration-150 hover:bg-primary/90 disabled:opacity-50 touch-manipulation"
-                  aria-label={`Guardar horario de ${editing.artist.nombre}`}
+                  aria-label={`Guardar cambios de ${editing.artist.nombre}`}
                 >
                   {isPending ? "Guardando..." : "Guardar"}
                 </button>
@@ -394,7 +482,7 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
                     editing?.artist.nombre === artist.nombre;
                   const modified = isModified(activeDay.dia, stage.nombre, artist);
                   const original = modified
-                    ? originalTimes.get(artistKey(activeDay.dia, stage.nombre, artist.nombre))
+                    ? originalTimes.get(artistKey(activeDay.dia, artist.nombre))
                     : null;
 
                   return (
@@ -432,7 +520,9 @@ export function ScheduleEditor({ schedule, originalSchedule, isFromDb }: Schedul
                         )}
                         {modified && original && (
                           <span className="text-[10px] text-muted line-through">
-                            {original.inicio} - {original.fin}
+                            {original.stageName !== stage.nombre
+                              ? `${original.stageName} · `
+                              : ""}{original.inicio} - {original.fin}
                           </span>
                         )}
                       </div>
