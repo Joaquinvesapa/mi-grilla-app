@@ -5,6 +5,7 @@ import type {
   GridStage,
   GridBounds,
   GridDay,
+  LiveStage,
 } from "./schedule-types";
 
 /**
@@ -139,7 +140,7 @@ export function parseDay(day: RawDia): GridDay {
       const endMin = timeToMinutes(artist.fin);
 
       artists.push({
-        id: `${day.dia}-${stage.nombre}-${artist.nombre}`.replace(/\s+/g, "-"),
+        id: `${day.dia}-${artist.nombre}`.replace(/\s+/g, "-"),
         name: artist.nombre,
         subtitle: artist.subtitulo,
         startTime: artist.inicio,
@@ -214,3 +215,82 @@ export const STAGE_SELECTED_BORDER_COLORS: Record<string, string> = {
   "Perry's Stage": "rgb(155, 85, 245)",     // Purple light
   KidzaPalooza: "rgb(255, 110, 40)",        // Orange light
 };
+
+// ── Live Now Helpers ───────────────────────────────────────
+
+/**
+ * Check if an artist is currently performing at the given minute.
+ * Start-inclusive, end-exclusive: an artist "plays" from their
+ * startMin up to (but not including) their endMin.
+ */
+export function isPlayingNow(artist: GridArtist, currentMin: number): boolean {
+  return artist.startMin <= currentMin && currentMin < artist.endMin;
+}
+
+/**
+ * Get all artists playing right now across all stages for a given day.
+ */
+export function getArtistsPlayingNow(
+  day: GridDay,
+  currentMin: number,
+): GridArtist[] {
+  return day.artists.filter((artist) => isPlayingNow(artist, currentMin));
+}
+
+/**
+ * Find the next upcoming artist on a specific stage.
+ * Returns the artist whose startMin is >= currentMin with the
+ * earliest start time, or null if no upcoming artist exists.
+ */
+export function getNextArtistOnStage(
+  day: GridDay,
+  stageName: string,
+  currentMin: number,
+): GridArtist | null {
+  const upcoming = day.artists
+    .filter((a) => a.stageName === stageName && a.startMin >= currentMin)
+    .sort((a, b) => a.startMin - b.startMin);
+
+  return upcoming[0] ?? null;
+}
+
+/**
+ * Compute the live status of every stage for a given day and time.
+ * For each unique stage, determines who's playing now and who's up next.
+ * Returns stages ordered by their stageIndex.
+ */
+export function computeLiveStages(
+  day: GridDay,
+  currentMin: number,
+): LiveStage[] {
+  const stageMap = new Map<string, LiveStage>();
+
+  // Initialize all stages from the day's stage list
+  for (const stage of day.stages) {
+    stageMap.set(stage.name, {
+      stageName: stage.name,
+      stageIndex: stage.index,
+      nowPlaying: null,
+      upNext: null,
+    });
+  }
+
+  // Fill in nowPlaying for each stage
+  const nowPlaying = getArtistsPlayingNow(day, currentMin);
+  for (const artist of nowPlaying) {
+    const stage = stageMap.get(artist.stageName);
+    if (stage) {
+      stage.nowPlaying = artist;
+    }
+  }
+
+  // Fill in upNext for each stage
+  for (const [stageName, stage] of stageMap) {
+    stage.upNext = getNextArtistOnStage(day, stageName, currentMin);
+  }
+
+  // Sort by stageIndex and return
+  return Array.from(stageMap.values()).sort(
+    (a, b) => a.stageIndex - b.stageIndex,
+  );
+}
