@@ -57,4 +57,24 @@ export interface GridDay {
   bounds: GridBounds;
 }
 
+// ── Live Now Types ─────────────────────────────────────────
+
+/** A single stage's live status: who's playing now and who's up next */
+export interface LiveStage {
+  stageName: string;
+  stageIndex: number;
+  nowPlaying: GridArtist | null;
+  upNext: GridArtist | null;
+}
+
+/** Describes the overall state of the live-now feature */
+export type LiveNowState =
+  | "live"
+  | "before-festival"
+  | "between-days"
+  | "after-today"
+  | "festival-over";
+
+// ── Day Label ──────────────────────────────────────────────
+
 export type DayLabel = "Viernes" | "Sabado" | "Domingo";
