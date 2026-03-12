@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useNetworkStatus } from "@/lib/hooks/use-network-status";
 import { syncOfflineMutations } from "@/lib/background-sync";
@@ -29,6 +30,7 @@ const SYNC_TOAST_DURATION = 3000;
  */
 export function OfflineIndicator() {
   const { isOnline, lastTransition } = useNetworkStatus();
+  const router = useRouter();
   const [showOnlineToast, setShowOnlineToast] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -57,7 +59,7 @@ export function OfflineIndicator() {
     setShowOnlineToast(true);
     const timer = setTimeout(() => setShowOnlineToast(false), ONLINE_TOAST_DURATION);
 
-    // Auto-sync pending mutations
+    // Auto-sync pending mutations, then revalidate page data
     setIsSyncing(true);
     syncOfflineMutations()
       .then((result) => {
@@ -66,6 +68,10 @@ export function OfflineIndicator() {
 
         // Clear sync result after delay
         setTimeout(() => setSyncResult(null), SYNC_TOAST_DURATION);
+
+        // Revalidate the current page so the user sees fresh server data
+        // instead of stale cached content from the offline period.
+        router.refresh();
       })
       .catch((error) => {
         console.error("[offline-indicator] Sync failed:", error);

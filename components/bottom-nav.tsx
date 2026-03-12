@@ -1,10 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useEffect, useRef, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { setNavigationPending } from "@/lib/navigation-pending";
 import { useNetworkStatus } from "@/lib/hooks/use-network-status";
 import { useOfflineCacheStatus } from "@/lib/hooks/use-offline-cache";
+
+// ── Types ──────────────────────────────────────────────────
 
 interface BottomNavProps {
   showSocial?: boolean;
@@ -146,12 +149,44 @@ const NAV_ITEMS: NavItem[] = [
 
 export function BottomNav({ showSocial = true }: BottomNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { isOnline } = useNetworkStatus();
   const offlineCache = useOfflineCacheStatus();
+  const [isPending, startTransition] = useTransition();
+  const pendingHrefRef = useRef<string | null>(null);
+
+  // ── Sync isPending → global navigation-pending store ────
+  useEffect(() => {
+    if (isPending) {
+      setNavigationPending(true);
+    } else {
+      // Transition ended — clear pending state
+      setNavigationPending(false);
+      pendingHrefRef.current = null;
+    }
+  }, [isPending]);
+
+  // ── Prefetch all enabled routes (replaces Link's prefetching) ──
+  useEffect(() => {
+    const enabledHrefs = NAV_ITEMS.filter((item) => {
+      if (item.disabled) return false;
+      if (item.href === "/social" && !showSocial) return false;
+      if (!isOnline) {
+        if (!offlineCache.isChecked) return false;
+        if (item.offlineKey) return offlineCache[item.offlineKey];
+        return false;
+      }
+      return true;
+    }).map((item) => getHref(item, isOnline));
+
+    for (const href of enabledHrefs) {
+      router.prefetch(href);
+    }
+  }, [router, showSocial, isOnline, offlineCache]);
 
   // When offline, redirect Social tab directly to grupos (the only cached section)
-  const getHref = (item: NavItem): string => {
-    if (!isOnline && item.href === "/social") {
+  const getHref = (item: NavItem, online: boolean): string => {
+    if (!online && item.href === "/social") {
       return "/social/grupos";
     }
     return item.href;
@@ -175,6 +210,27 @@ export function BottomNav({ showSocial = true }: BottomNavProps) {
     return false;
   };
 
+  // ── Navigate via transition ─────────────────────────────
+  const handleNavigation = (href: string) => {
+    // Skip if already on this route
+    if (pathname === href) return;
+    // Skip if already navigating to this route
+    if (isPending && pendingHrefRef.current === href) return;
+
+    // When offline, use full document navigation instead of client-side.
+    // Client-side nav sends RSC fetch requests that may not be cached.
+    // Full document nav lets the SW serve cached HTML or the /~offline fallback.
+    if (!isOnline) {
+      window.location.href = href;
+      return;
+    }
+
+    pendingHrefRef.current = href;
+    startTransition(() => {
+      router.push(href);
+    });
+  };
+
   return (
     <nav
       aria-label="Navegación principal"
@@ -191,6 +247,11 @@ export function BottomNav({ showSocial = true }: BottomNavProps) {
         paddingBottom: "var(--safe-area-bottom)",
       }}
     >
+      {/* Screen-reader live region for navigation state */}
+      <span className="sr-only" aria-live="polite" role="status">
+        {isPending ? "Cargando..." : ""}
+      </span>
+
       {NAV_ITEMS.filter((item) => {
         if (item.disabled) return false;
         if (item.href === "/social" && !showSocial) return false;
@@ -202,11 +263,13 @@ export function BottomNav({ showSocial = true }: BottomNavProps) {
         }
         return true;
       }).map((item) => {
-        const href = getHref(item);
+        const href = getHref(item, isOnline);
         const accessible = isAccessible(item);
         const isActive = item.prefixMatch
           ? pathname.startsWith(item.href)
           : pathname === item.href;
+        const isThisPending =
+          isPending && pendingHrefRef.current === href;
 
         // When offline and the tab label is "Social", show "Grupos" instead
         const label =
@@ -233,15 +296,20 @@ export function BottomNav({ showSocial = true }: BottomNavProps) {
         }
 
         return (
-          <Link
+          <button
             key={item.href}
-            href={href}
+            type="button"
+            onClick={() => handleNavigation(href)}
             aria-label={label}
             aria-current={isActive ? "page" : undefined}
+            aria-busy={isThisPending ? "true" : undefined}
             className={cn(
               "flex flex-1 flex-col items-center justify-center gap-1",
               "text-xs font-medium font-sans",
               "transition-colors duration-150",
+              "touch-manipulation",
+              // Reset default button styles
+              "bg-transparent border-none outline-none p-0",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
               "hover:opacity-80",
               isActive ? "text-primary" : "hover:text-primary",
@@ -257,12 +325,13 @@ export function BottomNav({ showSocial = true }: BottomNavProps) {
                 "flex items-center justify-center w-6 h-6",
                 "transition-transform duration-150",
                 isActive && "scale-110",
+                isThisPending && "animate-pulse",
               )}
             >
               {item.icon}
             </span>
             <span>{label}</span>
-          </Link>
+          </button>
         );
       })}
     </nav>

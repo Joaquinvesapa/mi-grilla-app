@@ -3,6 +3,8 @@
 @theme {
   --animate-slide-in-right: slide-in-right 0.6s ease-out both;
   --animate-slide-in-left:  slide-in-left  0.6s ease-out both;
+  --animate-nav-progress: nav-progress 3s ease-out both;
+  --animate-nav-progress-complete: nav-progress-complete 0.3s ease-out both;
 
   @keyframes slide-in-right {
     from { opacity: 0; transform: translateX(20px); }
@@ -12,6 +14,21 @@
   @keyframes slide-in-left {
     from { opacity: 0; transform: translateX(-20px); }
     to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Navigation progress bar — indeterminate crawl */
+  @keyframes nav-progress {
+    0%   { transform: scaleX(0); }
+    10%  { transform: scaleX(0.3); }
+    50%  { transform: scaleX(0.6); }
+    100% { transform: scaleX(0.9); }
+  }
+
+  /* Navigation progress bar — fill to 100% and fade out */
+  @keyframes nav-progress-complete {
+    0%   { transform: scaleX(0.9); opacity: 1; }
+    40%  { transform: scaleX(1);   opacity: 1; }
+    100% { transform: scaleX(1);   opacity: 0; }
   }
 }
 
@@ -152,15 +169,39 @@ body {
   }
 }
 
+/* ── Live Now ──────────────────────────────────────────── */
+
+@keyframes live-pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.5; transform: scale(1.6); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes live-card-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50%      { box-shadow: 0 0 10px 2px rgba(239, 68, 68, 0.25); }
+}
+
+.animate-live-card-pulse {
+  animation: live-card-pulse 2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   body {
     transition: none;
   }
 
   .animate-slide-in-right,
-  .animate-slide-in-left {
+  .animate-slide-in-left,
+  .animate-nav-progress,
+  .animate-nav-progress-complete {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .animate-live-pulse,
+  .animate-live-card-pulse {
+    animation: none;
   }
 }

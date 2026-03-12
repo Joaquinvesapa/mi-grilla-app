@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useOfflineCacheStatus } from "@/lib/hooks/use-offline-cache";
 
 // ── Types ──────────────────────────────────────────────────
@@ -130,7 +129,10 @@ export function OfflineNav() {
         Secciones disponibles offline:
       </p>
       {available.map((section) => (
-        <Link
+        // Use <a> instead of <Link> for full document navigation.
+        // When offline, the SW serves cached HTML for these routes.
+        // <Link> would trigger an RSC fetch that fails without cache.
+        <a
           key={section.href}
           href={section.href}
           className="flex items-center gap-3 rounded-2xl border border-border p-4 transition-all duration-150 hover:border-primary/30 active:scale-[0.98] touch-manipulation"
@@ -166,7 +168,7 @@ export function OfflineNav() {
           >
             <path d="M9 18l6-6-6-6" />
           </svg>
-        </Link>
+        </a>
       ))}
     </div>
   );
