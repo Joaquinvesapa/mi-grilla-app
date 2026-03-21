@@ -48,3 +48,16 @@ public/swe-worker-*.js
 # marketing (local only)
 *MARKETING*
 *marketing*
+
+# Agent tooling
+.agents/
+skills-lock.json
+
+# Temp & test artifacts
+*.Zone.Identifier
+en-vivo-*.png
+supabase/.temp/
+
+# Raw schedule images (not app assets)
+lolla_*.jpg
+migrate_*.sql
