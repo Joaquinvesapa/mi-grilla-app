@@ -5,6 +5,8 @@
   --animate-slide-in-left:  slide-in-left  0.6s ease-out both;
   --animate-nav-progress: nav-progress 3s ease-out both;
   --animate-nav-progress-complete: nav-progress-complete 0.3s ease-out both;
+  --animate-fade-in-up: fade-in-up 0.4s ease-out both;
+  --animate-fade-in: fade-in 0.35s ease-out both;
 
   @keyframes slide-in-right {
     from { opacity: 0; transform: translateX(20px); }
@@ -29,6 +31,16 @@
     0%   { transform: scaleX(0.9); opacity: 1; }
     40%  { transform: scaleX(1);   opacity: 1; }
     100% { transform: scaleX(1);   opacity: 0; }
+  }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
 }
 
@@ -200,8 +212,24 @@ body {
     transform: none;
   }
 
+  .animate-fade-in-up,
+  .animate-fade-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
   .animate-live-pulse,
   .animate-live-card-pulse {
     animation: none;
   }
+}
+
+/* ── DeviceFrame: hide scrollbars inside the phone mockup ── */
+.device-frame-scroll {
+  scrollbar-width: none;           /* Firefox */
+  -ms-overflow-style: none;        /* IE / old Edge */
+}
+.device-frame-scroll::-webkit-scrollbar {
+  display: none;                   /* Chrome, Safari, Edge */
 }

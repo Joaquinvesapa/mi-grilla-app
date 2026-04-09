@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
+import { classifyRoute } from "@/middleware-utils";
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -31,20 +32,27 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Public routes that don't require a session
-  const isPublic =
-    pathname === "/login" ||
-    pathname.startsWith("/auth");
+  // Route classification — /demo routes are public (no auth required)
+  const { isPublic, isOnboarding, isAdmin } = classifyRoute(pathname);
 
-  // Onboarding is accessible only WITH a session (but without profile)
-  const isOnboarding = pathname === "/onboarding";
+  // ── No session + public non-demo routes → redirect to demo ──
+  // /login and /auth/* are public but should also go to demo for visitors
+  if (!user && isPublic && !pathname.startsWith("/demo")) {
+    return NextResponse.redirect(new URL("/demo", request.url));
+  }
 
-  // Admin route requires is_admin = true
-  const isAdmin = pathname.startsWith("/admin");
-
-  // ── No session → login (except public routes) ──
+  // ── No session + protected routes → redirect to demo ──
   if (!user && !isPublic) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    // Routes with a demo equivalent keep their path
+    const DEMO_ROUTES = ["/grilla", "/agenda", "/social", "/perfil"];
+    const demoMatch = DEMO_ROUTES.find(
+      (route) => pathname === route || pathname.startsWith(route + "/"),
+    );
+    if (demoMatch) {
+      return NextResponse.redirect(new URL(`/demo${pathname}`, request.url));
+    }
+    // Everything else (/, /admin, /home, etc.) → demo landing
+    return NextResponse.redirect(new URL("/demo", request.url));
   }
 
   // ── Has session → prevent going back to login or root ──

@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// ── GitHub Pages flag ──────────────────────────────────────
+const isGitHubPages = process.env.GITHUB_PAGES === "1";
+
 // ── Security Headers ───────────────────────────────────────
 
 const ContentSecurityPolicy = [
@@ -30,33 +33,44 @@ const productionOrigin = process.env.NEXT_PUBLIC_SITE_URL
   : [];
 
 const nextConfig: NextConfig = {
+  ...(isGitHubPages && {
+    output: "export",
+    basePath: "/mi-grilla-app",
+    trailingSlash: true,
+  }),
   experimental: {
     viewTransition: true,
-    serverActions: {
-      allowedOrigins: ["localhost:3000", ...productionOrigin],
+    ...(!isGitHubPages && {
+      serverActions: {
+        allowedOrigins: ["localhost:3000", ...productionOrigin],
+      },
+    }),
+  },
+  images: isGitHubPages
+    ? { unoptimized: true }
+    : {
+        remotePatterns: [
+          {
+            protocol: "https",
+            hostname: "lh3.googleusercontent.com",
+          },
+          {
+            protocol: "https",
+            hostname: "*.supabase.co",
+            pathname: "/storage/v1/object/public/**",
+          },
+        ],
+      },
+  ...(!isGitHubPages && {
+    async headers() {
+      return [
+        {
+          source: "/(.*)",
+          headers: securityHeaders,
+        },
+      ];
     },
-  },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-      },
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
-        pathname: "/storage/v1/object/public/**",
-      },
-    ],
-  },
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: securityHeaders,
-      },
-    ];
-  },
+  }),
 };
 
 // ── Serwist (Service Worker) — production only ─────────────
@@ -68,7 +82,7 @@ const nextConfig: NextConfig = {
 
 let configExport: NextConfig = nextConfig;
 
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" && !isGitHubPages) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withSerwistInit = require("@serwist/next").default;
   const withSerwist = withSerwistInit({
