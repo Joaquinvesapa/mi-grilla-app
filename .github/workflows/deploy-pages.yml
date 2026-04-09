@@ -48,7 +48,7 @@ jobs:
           # (keeps _components/ intact for shared imports)
           for dir in "app/(app)" "app/auth" "app/login" "app/onboarding" "app/admin" "app/~offline"; do
             if [ -d "$dir" ]; then
-              find "$dir" -maxdepth 10 \( -name "page.tsx" -o -name "layout.tsx" -o -name "route.ts" -o -name "actions.ts" \) -delete
+              find "$dir" -maxdepth 10 \( -name "page.tsx" -o -name "layout.tsx" -o -name "route.ts" \) -delete
             fi
           done
           # Remove middleware (not supported in static export)
