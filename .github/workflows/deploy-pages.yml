@@ -2,9 +2,11 @@
 # Builds the Next.js app in static export mode (demo only)
 # and deploys to GitHub Pages on every push to main.
 #
-# Strategy: temporarily hide server-only routes (auth, app,
-# admin, onboarding, ~offline) so Next.js static export only
-# processes the demo subtree + root layout.
+# Strategy: temporarily remove server-only PAGE files (page.tsx,
+# layout.tsx, route.ts, actions.ts) from non-demo routes so
+# Next.js static export only processes the demo subtree.
+# We keep _components/ directories because demo imports shared
+# client components from app/(app)/_components/.
 
 name: Deploy Demo to GitHub Pages
 
@@ -40,19 +42,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Hide server-only routes for static export
+      - name: Remove server-only routes for static export
         run: |
-          mkdir -p /tmp/hidden-routes
-          # Move server-only route trees out of app/
-          for dir in "(app)" auth login onboarding admin ~offline; do
-            if [ -d "app/$dir" ]; then
-              mv "app/$dir" "/tmp/hidden-routes/$dir"
+          # Remove route files from server-only directories
+          # (keeps _components/ intact for shared imports)
+          for dir in "app/(app)" "app/auth" "app/login" "app/onboarding" "app/admin" "app/~offline"; do
+            if [ -d "$dir" ]; then
+              find "$dir" -maxdepth 10 \( -name "page.tsx" -o -name "layout.tsx" -o -name "route.ts" -o -name "actions.ts" \) -delete
             fi
           done
-          # Move middleware (not supported in static export)
-          [ -f middleware.ts ] && mv middleware.ts /tmp/hidden-routes/
-          # Move service worker source (Serwist, not needed for static)
-          [ -f app/sw.ts ] && mv app/sw.ts /tmp/hidden-routes/
+          # Remove middleware (not supported in static export)
+          rm -f middleware.ts
+          # Remove service worker source (Serwist, not needed)
+          rm -f app/sw.ts
 
       - name: Build static export
         run: pnpm build
