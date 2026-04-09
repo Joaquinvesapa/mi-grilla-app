@@ -1,6 +1,10 @@
 # ── GitHub Pages — static demo deployment ────────────────────
 # Builds the Next.js app in static export mode (demo only)
 # and deploys to GitHub Pages on every push to main.
+#
+# Strategy: temporarily hide server-only routes (auth, app,
+# admin, onboarding, ~offline) so Next.js static export only
+# processes the demo subtree + root layout.
 
 name: Deploy Demo to GitHub Pages
 
@@ -35,6 +39,20 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Hide server-only routes for static export
+        run: |
+          mkdir -p /tmp/hidden-routes
+          # Move server-only route trees out of app/
+          for dir in "(app)" auth login onboarding admin ~offline; do
+            if [ -d "app/$dir" ]; then
+              mv "app/$dir" "/tmp/hidden-routes/$dir"
+            fi
+          done
+          # Move middleware (not supported in static export)
+          [ -f middleware.ts ] && mv middleware.ts /tmp/hidden-routes/
+          # Move service worker source (Serwist, not needed for static)
+          [ -f app/sw.ts ] && mv app/sw.ts /tmp/hidden-routes/
 
       - name: Build static export
         run: pnpm build
